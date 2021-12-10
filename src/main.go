@@ -35,7 +35,7 @@ func main() {
 	logger.Infof("Source Root folder path set to: %s", SheepsTorConfig.SourceRoot)
 	SheepsTorConfig.configureWebsites()
 	router = ConfigureRouter()
-	Scratch()
+	//Scratch()
 	if *updatePtr != "" {
 		runAsCLIProcess(*updatePtr)
 	} else {
