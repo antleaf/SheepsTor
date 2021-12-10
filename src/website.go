@@ -53,11 +53,11 @@ func (w *Website) Configure(sourceRoot, webRoot string) {
 		for _, pathProcessor := range w.SheepsTorProcessing.PathProcessors.Processors {
 			pathProcessor.Initialise(w.SheepsTorProcessing.BaseURL)
 		}
-		defaultPathProcessor := PathProcessor{Name: "Built-in Default Path Processor", FolderMatchExpression: "(.+)/index\\.md", URLMatchExpression: ""}
+		defaultPathProcessor := PathProcessor{Name: "Built-in Default Path Processor", FolderMatchExpression: "(.+)/index\\.md", UrlGenerationPattern: "$1/", URLMatchExpression: ""}
 		defaultPathProcessor.Initialise(w.SheepsTorProcessing.BaseURL)
 		w.SheepsTorProcessing.PathProcessors.DefaultPathProcessor = &defaultPathProcessor
 		w.SheepsTorProcessing.PathProcessors.Processors = append(w.SheepsTorProcessing.PathProcessors.Processors, &defaultPathProcessor)
-		//w.RegenerateSiteMap()
+		w.RegenerateSiteMap()
 	}
 	w.WebRoot = filepath.Join(webRoot, w.Id)
 }
@@ -66,15 +66,6 @@ func (w *Website) RegenerateSiteMap() {
 	w.SMap = Sitemap{ContentRoot: w.ContentRoot, BaseURL: w.SheepsTorProcessing.BaseURL}
 	w.SMap.Build(w.SheepsTorProcessing.PathProcessors)
 }
-
-//func (w *Website) GetPermalinkForPage(page Page) string {
-//	pagePath := w.IndieWeb.PostsRelativeURLPath
-//	pageMonth := strings.Split(page.Metadata.Month, "-")[1]
-//	pagePath = strings.Replace(pagePath, ":year", page.Metadata.Year, -1)
-//	pagePath = strings.Replace(pagePath, ":month", pageMonth, -1)
-//	pagePath = strings.Replace(pagePath, ":slug", page.Slug, -1)
-//	return w.IndieWeb.BaseUrl + "/" + pagePath
-//}
 
 func (w *Website) Build() error {
 	logger.Debug(fmt.Sprintf("Initialising folders for: '%s'....", w.WebRoot))

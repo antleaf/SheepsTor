@@ -5,6 +5,7 @@ import "regexp"
 type PathProcessor struct {
 	Name                  string         `yaml:"name"`
 	FolderMatchExpression string         `yaml:"folder_match_expression"`
+	UrlGenerationPattern  string         `yaml:"url_generation_pattern"`
 	URLMatchExpression    string         `yaml:"url_match_expression"`
 	FolderRegex           *regexp.Regexp `yaml:"-"`
 	URLRegex              *regexp.Regexp `yaml:"-"`
@@ -38,7 +39,3 @@ func (pps *PathProcessorSet) AssignPathProcessorToSitemapNode(node *SitemapNode)
 		node.PathProcessor = pps.DefaultPathProcessor
 	}
 }
-
-//func (pp *PathProcessor) MatchesPermalink(baseUrl, permalink string) bool {
-//
-//}
