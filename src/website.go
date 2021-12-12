@@ -31,7 +31,7 @@ type Website struct {
 	WebRoot                    string                   `yaml:"-"`
 	GitRepo                    GitRepoConfig            `yaml:"git"`
 	SheepsTorProcessing        SheepsTorProcessorConfig `yaml:"sheepstor"`
-	SMap                       Sitemap                  `yaml:"-"`
+	SiteMap                    Sitemap                  `yaml:"-"`
 }
 
 func (w *Website) Configure(sourceRoot, webRoot string) {
@@ -63,8 +63,8 @@ func (w *Website) Configure(sourceRoot, webRoot string) {
 }
 
 func (w *Website) RegenerateSiteMap() {
-	w.SMap = Sitemap{ContentRoot: w.ContentRoot, BaseURL: w.SheepsTorProcessing.BaseURL}
-	w.SMap.Build(w.SheepsTorProcessing.PathProcessors)
+	w.SiteMap = Sitemap{ContentRoot: w.ContentRoot, BaseURL: w.SheepsTorProcessing.BaseURL}
+	w.SiteMap.Build(w.SheepsTorProcessing.PathProcessors)
 }
 
 func (w *Website) Build() error {

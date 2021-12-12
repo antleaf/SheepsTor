@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"github.com/bmatcuk/doublestar/v4"
 	"os"
 	"path/filepath"
@@ -55,4 +56,15 @@ func (sn *SitemapNode) ExtrapolatePermalink() {
 	permalink = strings.Replace(permalink, "{month}", pageMonth, -1)
 	permalink = strings.Replace(permalink, "{slug}", page.Slug, -1)
 	sn.Permalink = *sn.BaseURL + "/" + permalink
+}
+
+func (s *Sitemap) GetNodeByPermalink(permalink string) (*SitemapNode, error) {
+	var err error
+	for _, node := range s.Nodes {
+		if node.Permalink == permalink {
+			return node, err
+		}
+	}
+	err = errors.New("sitemap node with permalink " + permalink + " not found")
+	return &SitemapNode{}, err
 }

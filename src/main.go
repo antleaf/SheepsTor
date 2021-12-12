@@ -35,7 +35,7 @@ func main() {
 	logger.Infof("Source Root folder path set to: %s", SheepsTorConfig.SourceRoot)
 	SheepsTorConfig.configureWebsites()
 	router = ConfigureRouter()
-	//Scratch()
+	Scratch()
 	if *updatePtr != "" {
 		runAsCLIProcess(*updatePtr)
 	} else {
@@ -45,15 +45,13 @@ func main() {
 
 func Scratch() {
 	w := SheepsTorConfig.getWebsiteByID("www.paulwalk.net")
-	s := Sitemap{ContentRoot: w.ContentRoot, BaseURL: w.SheepsTorProcessing.BaseURL}
-	s.Build(w.SheepsTorProcessing.PathProcessors)
-	logger.Debugf("Number of nodes in sitemap = %v", len(s.Nodes))
-	sitemapNode := s.Nodes[0]
-	logger.Debugf("Processing page with path: %s", sitemapNode.FilePath)
-	w.SheepsTorProcessing.PathProcessors.AssignPathProcessorToSitemapNode(sitemapNode)
-	logger.Debugf("Permalink for page at %s is %s", sitemapNode.FilePath, sitemapNode.Permalink)
-	//page := sitemapNode.LoadPage()
-	//logger.Infof(page.Metadata.Title)
+	node, err := w.SiteMap.GetNodeByPermalink("https://www.paulwalk.net/2017/09/leaving-edina/")
+	if err != nil {
+		logger.Error(err.Error())
+	} else {
+		page := node.LoadPage()
+		logger.Infof("Title for page = %s", page.Metadata.Title)
+	}
 	os.Exit(1)
 }
 

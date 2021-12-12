@@ -6,7 +6,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"io/ioutil"
-	"os"
 	"os/user"
 	"path/filepath"
 )
@@ -22,7 +21,7 @@ func Clone(cloneID, branchRef, repoLocalPath string) error {
 		Auth:          publicKey,
 		ReferenceName: plumbing.ReferenceName(branchRef),
 		SingleBranch:  true,
-		Progress:      os.Stdout,
+		Progress:      nil,
 	})
 	return err
 }
@@ -45,7 +44,7 @@ func Pull(repoLocalPath, branchRef string) error {
 		RemoteName:    "origin",
 		ReferenceName: plumbing.ReferenceName(branchRef),
 		Auth:          publicKey,
-		Progress:      os.Stdout,
+		Progress:      nil,
 	})
 	if err != nil {
 		switch err.Error() {
@@ -91,7 +90,7 @@ func CommitAndPush(repoLocalPath, message string) error {
 		logger.Error("SSH Key not returned")
 		return err
 	}
-	err = repo.Push(&git.PushOptions{RemoteName: "origin", Auth: publicKey, Progress: os.Stdout})
+	err = repo.Push(&git.PushOptions{RemoteName: "origin", Auth: publicKey, Progress: nil})
 	if err != nil {
 		logger.Error(err.Error())
 		return err

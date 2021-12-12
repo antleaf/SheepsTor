@@ -13,9 +13,7 @@ type Config struct {
 	Port                           int        `yaml:"port"`
 	GitHubWebHookSecretEnvKey      string     `yaml:"github_webhook_secret_env_key"`
 	AkismetApiKeyEnvKey            string     `yaml:"akismet_api_key_env_key"`
-	WebmentionIoWebhookSecret      string     `yaml:"webmention_io_webhook_secret"`
 	DisableGitCommitForDevelopment bool       `yaml:"disable_git_commit_for_development"`
-	PublicAddress                  string     `yaml:"public_address"`
 	Websites                       []*Website `yaml:"websites"`
 }
 

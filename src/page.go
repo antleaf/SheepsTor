@@ -10,11 +10,12 @@ import (
 )
 
 type Page struct {
-	Permalink string
-	FilePath  string
-	Slug      string
-	Metadata  Frontmatter
-	Content   string
+	Permalink   string
+	FilePath    string
+	Slug        string
+	Metadata    Frontmatter
+	Content     string
+	Webmentions WebmentionSet
 }
 
 type Frontmatter struct {
@@ -74,6 +75,11 @@ func (p *Page) ReadFromFile(postFilePath string) error {
 		metadata := metadataAndContent[0]
 		err = yaml.Unmarshal([]byte(metadata), &p.Metadata)
 		p.Content = metadataAndContent[1]
+	}
+	// READ WEBMENTIONS
+	webmentionsErr := p.Webmentions.LoadFromFile(filepath.Join(filepath.Dir(postFilePath), "webmentions.yaml"))
+	if webmentionsErr != nil {
+		logger.Warn(err.Error())
 	}
 	return err
 }
