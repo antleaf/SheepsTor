@@ -25,7 +25,6 @@ type WebmentionSet []*Webmention
 func (wms *WebmentionSet) LoadFromFile(filePath string) error {
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		logger.Error(err.Error())
 		return err
 	}
 	err = yaml.Unmarshal([]byte(data), &wms)
@@ -43,11 +42,32 @@ func (wms *WebmentionSet) SaveToFile(filePath string) error {
 }
 
 func (wms *WebmentionSet) AddWebmention(wm Webmention) {
-	*wms = append(*wms, &wm)
+	if wms.GetWebmentionBySourceAndTarget(wm.Source, wm.Target) == nil {
+		*wms = append(*wms, &wm)
+		logger.Debug("Added webmention")
+	}
 }
 
 func (wms *WebmentionSet) Sort() {
 	sort.Slice(wms, func(i, j int) bool {
 		return (*wms)[i].Date.Before((*wms)[j].Date)
 	})
+}
+
+func (wms *WebmentionSet) GetWebmentionBySourceAndTarget(source, target string) *Webmention {
+	for _, wm := range *wms {
+		if (wm.Source == source) && (wm.Target == target) {
+			return wm
+		}
+	}
+	return nil
+}
+
+func (wms *WebmentionSet) GetWebmentionBySource(source string) *Webmention {
+	for _, wm := range *wms {
+		if wm.Source == source {
+			return wm
+		}
+	}
+	return nil
 }

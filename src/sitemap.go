@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"github.com/bmatcuk/doublestar/v4"
 	"os"
 	"path/filepath"
@@ -40,7 +39,10 @@ func (s *Sitemap) Build(pathProcessors PathProcessorSet) {
 
 func (sn *SitemapNode) LoadPage() Page {
 	page := Page{}
-	page.ReadFromFile(filepath.Join(*sn.ContentRoot, sn.FilePath))
+	page.FilePath = filepath.Join(*sn.ContentRoot, sn.FilePath)
+	page.Permalink = sn.Permalink
+	page.BaseURL = sn.BaseURL
+	page.ReadFromFile()
 	return page
 }
 
@@ -58,13 +60,22 @@ func (sn *SitemapNode) ExtrapolatePermalink() {
 	sn.Permalink = *sn.BaseURL + "/" + permalink
 }
 
-func (s *Sitemap) GetNodeByPermalink(permalink string) (*SitemapNode, error) {
-	var err error
+func (s *Sitemap) GetNodeByPermalink(permalink string) *SitemapNode {
 	for _, node := range s.Nodes {
 		if node.Permalink == permalink {
-			return node, err
+			return node
 		}
 	}
-	err = errors.New("sitemap node with permalink " + permalink + " not found")
-	return &SitemapNode{}, err
+	return nil
 }
+
+//func (s *Sitemap) GetNodeByPermalink(permalink string) (*SitemapNode, error) {
+//	var err error
+//	for _, node := range s.Nodes {
+//		if node.Permalink == permalink {
+//			return node, err
+//		}
+//	}
+//	err = errors.New("sitemap node with permalink " + permalink + " not found")
+//	return &SitemapNode{}, err
+//}

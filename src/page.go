@@ -16,6 +16,7 @@ type Page struct {
 	Metadata    Frontmatter
 	Content     string
 	Webmentions WebmentionSet
+	BaseURL     *string
 }
 
 type Frontmatter struct {
@@ -41,7 +42,7 @@ func (p *Page) GetFrontMatterAsYaml() (string, error) {
 	return frontMatterString, err
 }
 
-func (p *Page) WriteToFile(postFilePath string, withMetadata bool) error {
+func (p *Page) WriteToFile(withMetadata bool) error {
 	var fullPostContent string
 	var err error
 	if withMetadata {
@@ -52,17 +53,23 @@ func (p *Page) WriteToFile(postFilePath string, withMetadata bool) error {
 		}
 	}
 	fullPostContent = fullPostContent + p.Content
-	err = ioutil.WriteFile(postFilePath, []byte(fullPostContent), os.ModePerm)
+	err = ioutil.WriteFile(p.FilePath, []byte(fullPostContent), os.ModePerm)
+	p.GeneratePendingWebmentionsFromExtractedLinks()
+	webmentionsErr := p.Webmentions.SaveToFile(filepath.Join(filepath.Dir(p.FilePath), "webmentions.yaml"))
+	if webmentionsErr != nil {
+		logger.Warn(err.Error())
+	}
 	return err
 }
 
-func (p *Page) ReadFromFile(postFilePath string) error {
-	fileBytes, err := ioutil.ReadFile(postFilePath)
+func (p *Page) ReadFromFile() error {
+	var err error
+	fileBytes, err := ioutil.ReadFile(p.FilePath)
 	if err != nil {
 		logger.Error(err.Error())
 		return err
 	}
-	slug := postFilePath[:len(postFilePath)-8]
+	slug := p.FilePath[:len(p.FilePath)-8]
 	slug = filepath.Base(slug)
 	p.Slug = slug
 	fileContent := string(fileBytes)
@@ -77,9 +84,22 @@ func (p *Page) ReadFromFile(postFilePath string) error {
 		p.Content = metadataAndContent[1]
 	}
 	// READ WEBMENTIONS
-	webmentionsErr := p.Webmentions.LoadFromFile(filepath.Join(filepath.Dir(postFilePath), "webmentions.yaml"))
+	webmentionsErr := p.Webmentions.LoadFromFile(filepath.Join(filepath.Dir(p.FilePath), "webmentions.yaml"))
 	if webmentionsErr != nil {
-		logger.Warn(err.Error())
+		//logger.Warn(webmentionsErr.Error())
 	}
 	return err
+}
+
+func (p *Page) GeneratePendingWebmentionsFromExtractedLinks() {
+	targets := ExtractLinkURLs(p.Content, *p.BaseURL)
+	for _, target := range targets {
+		p.Webmentions.AddWebmention(Webmention{
+			Source: p.Permalink,
+			Target: target,
+			Status: WMStatusPending,
+			Date:   p.Metadata.Date,
+		})
+	}
+
 }

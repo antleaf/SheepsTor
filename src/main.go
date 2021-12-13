@@ -44,14 +44,26 @@ func main() {
 }
 
 func Scratch() {
-	w := SheepsTorConfig.getWebsiteByID("www.paulwalk.net")
-	node, err := w.SiteMap.GetNodeByPermalink("https://www.paulwalk.net/2017/09/leaving-edina/")
-	if err != nil {
-		logger.Error(err.Error())
-	} else {
-		page := node.LoadPage()
-		logger.Infof("Title for page = %s", page.Metadata.Title)
-	}
+	//w := SheepsTorConfig.getWebsiteByID("www.paulwalk.net")
+	//for _, node := range w.SiteMap.Nodes {
+	//	page := node.LoadPage()
+	//	page.WriteToFile(true)
+	//}
+	//logger.Infof("Filepath for page = %s", page.FilePath)
+	//logger.Infof("Permalink for page = %s", page.Permalink)
+	//page.WriteToFile(true)
+
+	//links := make([]string, 0)
+	//for _, node := range w.SiteMap.Nodes {
+	//	links = append(links, ExtractLinkURLs(node.LoadPage().Content, w.SheepsTorProcessing.BaseURL)...)
+	//}
+	//f, _ := os.Create("/Users/paulwalk/_temp/sheepstor_data/links.csv")
+	//defer f.Close()
+	//for _, link := range links {
+	//	//fmt.Println(link)
+	//	f.WriteString(link + "\n")
+	//}
+
 	os.Exit(1)
 }
 

@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 // CopyFile copies the contents of the file named src to the file named
@@ -121,29 +122,53 @@ func GetIP(r *http.Request) string {
 	return IPAddress
 }
 
-//var markdownLinkRegex = regexp.MustCompile("\\[.+\\]\\((.+)\\)")
-//var htmlLinkRegex = regexp.MustCompile("<a href=\"(.+)\">")
-
-var markdownLinkRegex = regexp.MustCompile("\\[[\\w\\d\\s]+\\]\\(([\\w\\d./?=#:\\-\\(\\)_]+)\\)")
+var markdownLinkRegex = regexp.MustCompile("\\[[\\w\\d\\s]+\\]\\(([\\w\\d./?=#:\\-_]+)\\)")
 var htmlLinkRegex = regexp.MustCompile("<a href=\"([\\w\\d./?=#:\\-\\(\\)_]+)\">")
 
-func ExtractLinkURLs(content string) []string {
+func ExtractLinkURLs(content, baseUrlForRelativeLinks string) []string {
 	links := make([]string, 0)
 	for _, match := range markdownLinkRegex.FindAllStringSubmatch(content, -1) {
-		links = append(links, match[1])
+		parsedLink, err := ReturnAbsoluteLink(match[1], baseUrlForRelativeLinks)
+		if err == nil {
+			links = append(links, parsedLink)
+		}
 	}
 	for _, match := range htmlLinkRegex.FindAllStringSubmatch(content, -1) {
-		links = append(links, match[1])
+		parsedLink, err := ReturnAbsoluteLink(match[1], baseUrlForRelativeLinks)
+		if err == nil {
+			links = append(links, parsedLink)
+		}
 	}
 	for _, link := range links {
-		//logger.Debugf("Checking link %s...", link)
-		_, err := url.Parse(link)
+		parsedLink, err := url.Parse(link)
 		if err != nil {
 			logger.Error(err.Error())
 		} else {
-			//logger.Debugf("Link %s is OK", link)
-			//logger.Debugf("Link %s has host: %s", link, url.Host)
+			if !parsedLink.IsAbs() {
+
+			}
 		}
 	}
 	return links
+}
+
+func ReturnAbsoluteLink(link, baseUrlForRelativeLinks string) (string, error) {
+	newLink := link
+	parsedLink, err := url.Parse(link)
+	if err != nil {
+		return newLink, err
+	} else {
+		if !parsedLink.IsAbs() {
+			switch {
+			case strings.HasPrefix(link, "/"):
+				newLink = baseUrlForRelativeLinks + link
+			case strings.HasPrefix(link, "./"):
+				newLink = baseUrlForRelativeLinks + link[1:(len(link)-1)]
+			default:
+				newLink = baseUrlForRelativeLinks + "/" + link
+			}
+
+		}
+	}
+	return newLink, err
 }
