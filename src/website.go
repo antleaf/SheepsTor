@@ -53,7 +53,7 @@ func (w *Website) Configure(sourceRoot, webRoot string) {
 		for _, pathProcessor := range w.SheepsTorProcessing.PathProcessors.Processors {
 			pathProcessor.Initialise(w.SheepsTorProcessing.BaseURL)
 		}
-		defaultPathProcessor := PathProcessor{Name: "Built-in Default Path Processor", FolderMatchExpression: "(.+)/index\\.md", UrlGenerationPattern: "$1/", URLMatchExpression: ""}
+		defaultPathProcessor := PathProcessor{Name: "Built-in Default Path Processor", FolderMatchExpression: "(.+)/index\\.md", UrlGenerationPattern: "$1/"}
 		defaultPathProcessor.Initialise(w.SheepsTorProcessing.BaseURL)
 		w.SheepsTorProcessing.PathProcessors.DefaultPathProcessor = &defaultPathProcessor
 		w.SheepsTorProcessing.PathProcessors.Processors = append(w.SheepsTorProcessing.PathProcessors.Processors, &defaultPathProcessor)

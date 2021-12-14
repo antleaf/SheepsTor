@@ -38,7 +38,7 @@ func (s *Sitemap) Build(pathProcessors PathProcessorSet) {
 }
 
 func (sn *SitemapNode) LoadPage() Page {
-	page := Page{}
+	page := NewPage()
 	page.FilePath = filepath.Join(*sn.ContentRoot, sn.FilePath)
 	page.Permalink = sn.Permalink
 	page.BaseURL = sn.BaseURL

@@ -31,6 +31,13 @@ type Frontmatter struct {
 	Collections []string  `yaml:"collections"`
 }
 
+func NewPage() Page {
+	page := Page{}
+	webmentionSet := make(WebmentionSet, 0)
+	page.Webmentions = &webmentionSet
+	return page
+}
+
 func (f *Frontmatter) Month() string {
 	return f.Date.Format("01")
 }
@@ -89,7 +96,8 @@ func (p *Page) ReadFromFile() error {
 		err = yaml.Unmarshal([]byte(metadata), &p.Metadata)
 		p.Content = metadataAndContent[1]
 	}
-	// READ WEBMENTIONS
+
+	//READ WEBMENTIONS
 	webmentionsErr := p.Webmentions.LoadFromFile(filepath.Join(filepath.Dir(p.FilePath), "webmentions.yaml"))
 	if webmentionsErr != nil {
 		//logger.Warn(webmentionsErr.Error())

@@ -12,6 +12,24 @@ import (
 	"strings"
 )
 
+//const (
+//	// RFC3339Millis represents a ISO8601 format to millis instead of to nanos
+//	RFC3339Millis = "2006-01-02T15:04:05.000Z07:00"
+//	// RFC3339Micro represents a ISO8601 format to micro instead of to nano
+//	RFC3339Micro = "2006-01-02T15:04:05.000000Z07:00"
+//	// NoTimeZone time format that excludes the time zone
+//	NoTimeZone = "2006-01-02T15:04:05"
+//	// DateTimePattern pattern to match for the date-time format from http://tools.ietf.org/html/rfc3339#section-5.6
+//	DateTimePattern = `^([0-9]{2}):([0-9]{2}):([0-9]{2})(.[0-9]+)?(z|([+-][0-9]{2}:[0-9]{2}))$`
+//)
+//
+//var (
+//	dateTimeFormats = []string{RFC3339Micro, RFC3339Millis, NoTimeZone, time.RFC3339, time.RFC3339Nano}
+//	rxDateTime      = regexp.MustCompile(DateTimePattern)
+//	// MarshalFormat sets the time resolution format used for marshaling time (set to milliseconds)
+//	MarshalFormat = RFC3339Millis
+//)
+
 // CopyFile copies the contents of the file named src to the file named
 // by dst. The file will be created if it does not already exist. If the
 // destination file exists, all it's contents will be replaced by the contents
