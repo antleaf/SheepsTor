@@ -49,13 +49,8 @@ func (sn *SitemapNode) LoadPage() Page {
 func (sn *SitemapNode) ExtrapolatePermalink() {
 	permalink := sn.PathProcessor.FolderRegex.ReplaceAllString(sn.FilePath, sn.PathProcessor.UrlGenerationPattern)
 	page := sn.LoadPage()
-	pageMonth := ""
-	pageYearMonthStringSlice := strings.Split(page.Metadata.Month, "-")
-	if len(pageYearMonthStringSlice) == 2 {
-		pageMonth = strings.Split(page.Metadata.Month, "-")[1]
-	}
-	permalink = strings.Replace(permalink, "{year}", page.Metadata.Year, -1)
-	permalink = strings.Replace(permalink, "{month}", pageMonth, -1)
+	permalink = strings.Replace(permalink, "{year}", page.Metadata.Year(), -1)
+	permalink = strings.Replace(permalink, "{month}", page.Metadata.Month(), -1)
 	permalink = strings.Replace(permalink, "{slug}", page.Slug, -1)
 	sn.Permalink = *sn.BaseURL + "/" + permalink
 }

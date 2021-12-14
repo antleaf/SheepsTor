@@ -15,7 +15,7 @@ type Page struct {
 	Slug        string
 	Metadata    Frontmatter
 	Content     string
-	Webmentions WebmentionSet
+	Webmentions *WebmentionSet
 	BaseURL     *string
 }
 
@@ -26,11 +26,17 @@ type Frontmatter struct {
 	Type        string    `yaml:"type"`
 	Draft       bool      `yaml:"draft"`
 	Description string    `yaml:"description"`
-	Aliases     []string  `yaml:"aliases"`
+	Aliases     []string  `yaml:"aliases,omitempty"`
 	Tags        []string  `yaml:"tags"`
 	Collections []string  `yaml:"collections"`
-	Year        string    `yaml:"year"`
-	Month       string    `yaml:"month"`
+}
+
+func (f *Frontmatter) Month() string {
+	return f.Date.Format("01")
+}
+
+func (f *Frontmatter) Year() string {
+	return f.Date.Format("2006")
 }
 
 func (p *Page) GetFrontMatterAsYaml() (string, error) {

@@ -3,13 +3,13 @@ package main
 import "regexp"
 
 type PathProcessor struct {
-	Name                  string         `yaml:"name"`
-	FolderMatchExpression string         `yaml:"folder_match_expression"`
-	UrlGenerationPattern  string         `yaml:"url_generation_pattern"`
-	URLMatchExpression    string         `yaml:"url_match_expression"`
-	FolderRegex           *regexp.Regexp `yaml:"-"`
-	URLRegex              *regexp.Regexp `yaml:"-"`
-	BaseURL               string         `yaml:"-"` //comes from website config
+	Name                  string `yaml:"name"`
+	FolderMatchExpression string `yaml:"folder_match_expression"`
+	UrlGenerationPattern  string `yaml:"url_generation_pattern"`
+	//URLMatchExpression    string         `yaml:"url_match_expression"`
+	FolderRegex *regexp.Regexp `yaml:"-"`
+	//URLRegex    *regexp.Regexp `yaml:"-"`
+	BaseURL string `yaml:"-"` //comes from website config
 }
 
 type PathProcessorSet struct {
@@ -20,7 +20,7 @@ type PathProcessorSet struct {
 func (pp *PathProcessor) Initialise(baseURL string) {
 	pp.BaseURL = baseURL
 	pp.FolderRegex = regexp.MustCompile(pp.FolderMatchExpression)
-	pp.URLRegex = regexp.MustCompile(pp.URLMatchExpression)
+	//pp.URLRegex = regexp.MustCompile(pp.URLMatchExpression)
 }
 
 func (pps *PathProcessorSet) AssignPathProcessorToSitemapNode(node *SitemapNode) {
