@@ -35,7 +35,7 @@ func main() {
 	logger.Infof("Source Root folder path set to: %s", SheepsTorConfig.SourceRoot)
 	SheepsTorConfig.configureWebsites()
 	router = ConfigureRouter()
-	Scratch()
+	//Scratch()
 	if *updatePtr != "" {
 		runAsCLIProcess(*updatePtr)
 	} else {
@@ -44,33 +44,11 @@ func main() {
 }
 
 func Scratch() {
-	w := SheepsTorConfig.getWebsiteByID("www.paulwalk.net")
-	//node := w.SiteMap.GetNodeByPermalink("https://www.paulwalk.net/2015/coax/")
-	//logger.Debugf("node path = %s", node.FilePath)
-	for _, node := range w.SiteMap.Nodes {
-		page := node.LoadPage()
-		for _, webmention := range *page.Webmentions {
-			if webmention.Status == WMStatusPending {
-				logger.Debugf("Pending webmention from %s to %s", webmention.Source, webmention.Target)
-			}
-		}
-		//page.WriteToFile(true)
-	}
-	//logger.Infof("Filepath for page = %s", page.FilePath)
-	//logger.Infof("Permalink for page = %s", page.Permalink)
-	//page.WriteToFile(true)
-
-	//links := make([]string, 0)
+	//w := SheepsTorConfig.getWebsiteByID("www.paulwalk.net")
 	//for _, node := range w.SiteMap.Nodes {
-	//	links = append(links, ExtractLinkURLs(node.LoadPage().Content, w.SheepsTorProcessing.BaseURL)...)
+	//	//page := node.LoadPage()
+	//	//page.WriteToFile(true)
 	//}
-	//f, _ := os.Create("/Users/paulwalk/_temp/sheepstor_data/links.csv")
-	//defer f.Close()
-	//for _, link := range links {
-	//	//fmt.Println(link)
-	//	f.WriteString(link + "\n")
-	//}
-
 	os.Exit(1)
 }
 

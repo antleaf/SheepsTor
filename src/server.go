@@ -53,6 +53,7 @@ func WebMentionIOHookHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	logger.Debugf("Processing incoming webmention with source: %s & target: %s...", webmention.Source, webmention.Target)
 	pageNode := website.SiteMap.GetNodeByPermalink(webmention.Target)
 	if pageNode == nil {
 		logger.Error(errors.New("local webmention target not found: " + webmention.Target))
@@ -62,7 +63,6 @@ func WebMentionIOHookHandler(w http.ResponseWriter, r *http.Request) {
 	page := pageNode.LoadPage()
 	page.Webmentions.AddWebmention(webmention)
 	page.WriteToFile(true)
-
 }
 
 func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {

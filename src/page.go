@@ -68,7 +68,7 @@ func (p *Page) WriteToFile(withMetadata bool) error {
 	fullPostContent = fullPostContent + p.Content
 	err = ioutil.WriteFile(p.FilePath, []byte(fullPostContent), os.ModePerm)
 	p.GeneratePendingWebmentionsFromExtractedLinks()
-	webmentionsErr := p.Webmentions.SaveToFile(filepath.Join(filepath.Dir(p.FilePath), "webmentions.yaml"))
+	webmentionsErr := p.Webmentions.SaveToFile(filepath.Join(filepath.Dir(p.FilePath), "webmentions.csv"))
 	if webmentionsErr != nil {
 		logger.Warn(err.Error())
 	}
@@ -98,9 +98,9 @@ func (p *Page) ReadFromFile() error {
 	}
 
 	//READ WEBMENTIONS
-	webmentionsErr := p.Webmentions.LoadFromFile(filepath.Join(filepath.Dir(p.FilePath), "webmentions.yaml"))
+	webmentionsErr := p.Webmentions.LoadFromFile(filepath.Join(filepath.Dir(p.FilePath), "webmentions.csv"))
 	if webmentionsErr != nil {
-		//logger.Warn(webmentionsErr.Error())
+		logger.Error(webmentionsErr.Error())
 	}
 	return err
 }
