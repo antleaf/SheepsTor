@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -161,7 +162,7 @@ func (w *Website) StoreTempMediaFileAndReturnURL(mediaFile multipart.File, fileN
 
 func (w *Website) LoadPage(filePath string) (*Page, error) {
 	fullFilePath := filepath.Join(w.ContentRoot, filePath)
-	p := NewPage(filePath, time.Now(), &w.BaseURL, w.PathProcessorSet.SelectPathProcessorForPath(filePath))
+	p := NewPage(filePath, time.Now(), &w.BaseURL, w.PathProcessorSet.SelectPathProcessorForFilePath(filePath))
 	err := p.ReadFromFile(fullFilePath)
 	if err != nil {
 		return p, err
@@ -175,7 +176,11 @@ func (w *Website) SavePage(page *Page, filePath string) error {
 }
 
 func (w *Website) GetPagePathForPermalink(permalink string) string {
-	return ""
+	relativePermalink := strings.Replace(permalink, w.BaseURL, "", 1)
+	logger.Debugf("relative plink = %s", relativePermalink)
+	pp := w.PathProcessorSet.SelectPathProcessorForPermalink(relativePermalink)
+	path := pp.URLRegex.ReplaceAllString(relativePermalink, pp.FileGenerationPattern)
+	return path
 }
 
 func (w *Website) GetAllPageFilePaths() ([]string, error) {

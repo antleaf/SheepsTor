@@ -9,6 +9,7 @@ type PathProcessor struct {
 	UrlGenerationPattern  string
 	FileGenerationPattern string
 	FolderRegex           *regexp.Regexp
+	URLRegex              *regexp.Regexp
 	BaseURL               string
 }
 
@@ -45,10 +46,11 @@ func NewPathProcessor(ppConfig PathProcessorConfig, baseURL string) PathProcesso
 		BaseURL:               baseURL,
 	}
 	pp.FolderRegex = regexp.MustCompile(pp.FolderMatchExpression)
+	pp.URLRegex = regexp.MustCompile(pp.URLMatchExpression)
 	return pp
 }
 
-func (pps *PathProcessorSet) SelectPathProcessorForPath(path string) *PathProcessor {
+func (pps *PathProcessorSet) SelectPathProcessorForFilePath(path string) *PathProcessor {
 	if len(path) > 0 {
 		for _, pp := range pps.PathProcessors {
 			if len(pp.FolderRegex.FindAllStringSubmatch(path, -1)) > 0 {
@@ -57,6 +59,17 @@ func (pps *PathProcessorSet) SelectPathProcessorForPath(path string) *PathProces
 		}
 	} else {
 		logger.Errorf("No file path set for node, unable to match path processor")
+	}
+	return &pps.DefaultPathProcessor
+}
+
+func (pps *PathProcessorSet) SelectPathProcessorForPermalink(permalink string) *PathProcessor {
+	if len(permalink) > 0 {
+		for _, pp := range pps.PathProcessors {
+			if len(pp.URLRegex.FindAllStringSubmatch(permalink, -1)) > 0 {
+				return &pp
+			}
+		}
 	}
 	return &pps.DefaultPathProcessor
 }

@@ -35,7 +35,7 @@ func main() {
 	logger.Infof("Source Root folder path set to: %s", config.SourceRoot)
 	registry = NewRegistry(config.WebsiteConfigs, config.SourceRoot, config.WebRoot)
 	router = ConfigureRouter()
-	//Scratch()
+	Scratch()
 	if *updatePtr != "" {
 		runAsCLIProcess(*updatePtr)
 	} else {
@@ -45,7 +45,11 @@ func main() {
 
 func Scratch() {
 	w := registry.getWebsiteByID("www.paulwalk.net")
-	logger.Info(w.GitRepo.GetHeadCommitID())
+	permalink := "https://www.paulwalk.net/2003/broadband-britain/"
+	pp := w.PathProcessorSet.SelectPathProcessorForPermalink(permalink)
+	logger.Infof("PP = %s", pp.Name)
+	logger.Infof("Path = %s", w.GetPagePathForPermalink(permalink))
+	//logger.Debugf("path = %s", w.GetPagePathForPermalink(permalink))
 	//filePath := "posts/2003/broadband-britain/index.md"
 	//filePath = "posts/2015/the-active-repository-pattern/index.md"
 	//p, err := w.LoadPage(filePath)
