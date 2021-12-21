@@ -55,14 +55,15 @@ func WebMentionIOHookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	logger.Debugf("Processing incoming webMention with source: %s & target: %s...", webMention.Source, webMention.Target)
-	page := website.SiteMap.GetPageByPermalink(webMention.Target)
-	if page == nil {
+	pageFullFilePath := website.GetPagePathForPermalink(webMention.Target)
+	page, err := website.LoadPage(pageFullFilePath) //TODO: GetPagePathForPermalink() needs to be developed
+	if err != nil {
 		logger.Error(errors.New("local webMention target not found: " + webMention.Target))
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 	page.WebMentions.AddWebMention(webMention)
-	page.WriteToFile(true, true)
+	page.WriteToFile(pageFullFilePath)
 }
 
 func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
@@ -89,7 +90,15 @@ func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
 		case *github.PushEvent:
 			websitePtr := registry.getWebsiteByRepoNameAndBranchRef(e.GetRepo().GetFullName(), e.GetRef())
 			if websitePtr != nil {
-				ProcessWebsite(websitePtr)
+				localCommitID := websitePtr.GitRepo.GetHeadCommitID()
+				logger.Debugf("Local commit ID = %s", localCommitID)
+				pushCommitID := *e.HeadCommit.ID
+				logger.Debugf("Head commit ID from push event = %v", pushCommitID)
+				if localCommitID != pushCommitID {
+					ProcessWebsite(websitePtr)
+				} else {
+					logger.Debugf("Local and Push commit IDs are the same - no need to rebuild the site")
+				}
 			}
 		default:
 			logger.Error(fmt.Sprintf("Not a push event %s", github.WebHookType(req)))

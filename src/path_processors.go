@@ -5,6 +5,7 @@ import "regexp"
 type PathProcessor struct {
 	Name                  string
 	FolderMatchExpression string
+	URLMatchExpression    string
 	UrlGenerationPattern  string
 	FileGenerationPattern string
 	FolderRegex           *regexp.Regexp
@@ -28,6 +29,7 @@ func NewPathProcessorSet(defaultPPConfig PathProcessorConfig, ppConfigs []PathPr
 var DefaultPPConfig = PathProcessorConfig{
 	Name:                  "Built-in Default Path Processor",
 	FolderMatchExpression: "([a-zA-Z0-9_\\/-]*)/index\\.md$",
+	URLMatchExpression:    ".+",
 	UrlGenerationPattern:  "$1/",
 	FileGenerationPattern: "/{slug}/index.md",
 }
@@ -36,6 +38,7 @@ func NewPathProcessor(ppConfig PathProcessorConfig, baseURL string) PathProcesso
 	var pp = PathProcessor{
 		Name:                  ppConfig.Name,
 		FolderMatchExpression: ppConfig.FolderMatchExpression,
+		URLMatchExpression:    ppConfig.URLMatchExpression,
 		UrlGenerationPattern:  ppConfig.UrlGenerationPattern,
 		FileGenerationPattern: ppConfig.FileGenerationPattern,
 		FolderRegex:           nil,
@@ -52,18 +55,8 @@ func (pps *PathProcessorSet) SelectPathProcessorForPath(path string) *PathProces
 				return &pp
 			}
 		}
-		logger.Warnf("Did not find path processor for file path %s so using default processor", path)
 	} else {
 		logger.Errorf("No file path set for node, unable to match path processor")
 	}
 	return &pps.DefaultPathProcessor
 }
-
-//func (pps *PathProcessorSet) GetPathProcessorByName(name string) *PathProcessor {
-//	for _, pp := range pps.PathProcessors {
-//		if pp.Name == name {
-//			return &pp
-//		}
-//	}
-//	return &pps.DefaultPathProcessor
-//}

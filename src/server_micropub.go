@@ -90,30 +90,39 @@ func MicroPubPostHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		entry.InitialisePublishedDate()
 		filePath := fmt.Sprintf("posts/%s/%s/index.md", entry.Date.Format("2006"), entry.Properties.Name[0])
-		page, pageIsNew := website.SiteMap.GetOrCreatePage(filePath, entry.Date, &website.ContentRoot, &website.BaseURL, website.SiteMap.PathProcessorSet, website.IndieWeb.MediaUploadURLRegex, &website.IndieWeb.MediaUploadPath)
-		page.ReadFromString(entry.Properties.Content[0], true)
-		err = page.WriteToFile(true, true)
+		pageIsNew := false
+		page, pageLoadErr := website.LoadPage(filePath) //will return a new, blank page if not loaded from file
+		if pageLoadErr != nil {
+			pageIsNew = true
+		}
+		page.ReadFromString(entry.Properties.Content[0])
+		err = website.SavePage(page, filePath)
 		if err != nil {
 			logger.Error(err.Error())
 			http.Error(w, "invalid request", http.StatusBadRequest)
 			return
 		} else {
 			logger.Debugf("Wrote page to file at %s", page.FilePath)
+			w.Header().Set("Location", page.Permalink)
 			if config.DisableGitCommitForDevelopment == false {
-				err = Pull(website.GitRepo.RepoLocalPath, website.GitRepo.BranchRef)
-				if err != nil {
-					logger.Error("Git Pull failed " + err.Error())
-					http.Error(w, "invalid request", http.StatusBadRequest)
-					return
-				}
+				//err = Pull(website.GitRepo.RepoLocalPath, website.GitRepo.BranchRef)
+				//if err != nil {
+				//	logger.Error("Git Pull failed " + err.Error())
+				//	http.Error(w, "invalid request", http.StatusBadRequest)
+				//	return
+				//}
 				err = website.CommitAndPush("Added or updated page on " + website.ID)
 				if err != nil {
 					logger.Error("Git Commit & Push failed " + err.Error())
-					http.Error(w, "invalid request", http.StatusBadRequest)
+					http.Error(w, "unable to commit changes to git", http.StatusBadRequest)
 					return
 				} else {
-					logger.Infof("wrote new page to %s", page.FilePath)
-					w.Header().Set("Location", page.Permalink)
+					err = website.Build()
+					if err != nil {
+						logger.Error(err.Error())
+						http.Error(w, "unable to rebuild website", http.StatusBadRequest)
+						return
+					}
 					if pageIsNew {
 						w.WriteHeader(http.StatusCreated)
 					} else {
@@ -124,5 +133,5 @@ func MicroPubPostHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	w.WriteHeader(http.StatusOK)
+	//w.WriteHeader(http.StatusOK)
 }

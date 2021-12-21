@@ -27,6 +27,7 @@ type GitRepoConfig struct {
 type PathProcessorConfig struct {
 	Name                  string `yaml:"name"`
 	FolderMatchExpression string `yaml:"folder_match_expression"`
+	URLMatchExpression    string `yaml:"url_match_expression"`
 	UrlGenerationPattern  string `yaml:"url_generation_pattern"`
 	FileGenerationPattern string `yaml:"file_generation_pattern"`
 }

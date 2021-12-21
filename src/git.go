@@ -12,7 +12,7 @@ import (
 )
 
 type GitRepo struct {
-	CloneId       string
+	CloneID       string
 	RepoName      string
 	BranchName    string
 	BranchRef     string
@@ -21,7 +21,7 @@ type GitRepo struct {
 
 func NewGitRepo(gitConfig GitRepoConfig, localPath string) GitRepo {
 	var g = GitRepo{
-		CloneId:       gitConfig.CloneId,
+		CloneID:       gitConfig.CloneId,
 		RepoName:      gitConfig.RepoName,
 		BranchName:    gitConfig.BranchName,
 		RepoLocalPath: localPath,
@@ -30,25 +30,47 @@ func NewGitRepo(gitConfig GitRepoConfig, localPath string) GitRepo {
 	return g
 }
 
-func Clone(cloneID, branchRef, repoLocalPath string) error {
+func (g *GitRepo) GetHeadCommitID() string {
+	var err error
+	var headCommitID string
+	repo, err := git.PlainOpen(g.RepoLocalPath)
+	if err != nil {
+		logger.Error(err.Error())
+		return headCommitID
+	}
+	ref, err := repo.Head()
+	if err != nil {
+		logger.Error(err.Error())
+		return headCommitID
+	}
+	commit, err := repo.CommitObject(ref.Hash())
+	if err != nil {
+		logger.Error(err.Error())
+		return headCommitID
+	}
+	headCommitID = commit.ID().String()
+	return headCommitID
+}
+
+func (g *GitRepo) Clone() error {
 	var err error
 	publicKey, err := getSshPublicKey()
 	if err != nil {
 		return err
 	}
-	_, err = git.PlainClone(repoLocalPath, false, &git.CloneOptions{
-		URL:           cloneID,
+	_, err = git.PlainClone(g.RepoLocalPath, false, &git.CloneOptions{
+		URL:           g.CloneID,
 		Auth:          publicKey,
-		ReferenceName: plumbing.ReferenceName(branchRef),
+		ReferenceName: plumbing.ReferenceName(g.BranchRef),
 		SingleBranch:  true,
 		Progress:      nil,
 	})
 	return err
 }
 
-func Pull(repoLocalPath, branchRef string) error {
+func (g *GitRepo) Pull() error {
 	var err error
-	repo, err := git.PlainOpen(repoLocalPath)
+	repo, err := git.PlainOpen(g.RepoLocalPath)
 	if err != nil {
 		return err
 	}
@@ -62,7 +84,7 @@ func Pull(repoLocalPath, branchRef string) error {
 	}
 	err = w.Pull(&git.PullOptions{
 		RemoteName:    "origin",
-		ReferenceName: plumbing.ReferenceName(branchRef),
+		ReferenceName: plumbing.ReferenceName(g.BranchRef),
 		Auth:          publicKey,
 		Progress:      nil,
 	})
@@ -82,9 +104,9 @@ func Pull(repoLocalPath, branchRef string) error {
 	return err
 }
 
-func CommitAndPush(repoLocalPath, message string) error {
+func (g *GitRepo) CommitAndPush(message string) error {
 	var err error
-	repo, err := git.PlainOpenWithOptions(repoLocalPath, &git.PlainOpenOptions{DetectDotGit: true, EnableDotGitCommonDir: true})
+	repo, err := git.PlainOpenWithOptions(g.RepoLocalPath, &git.PlainOpenOptions{DetectDotGit: true, EnableDotGitCommonDir: true})
 	if err != nil {
 		logger.Error(err.Error())
 		return err
@@ -104,7 +126,7 @@ func CommitAndPush(repoLocalPath, message string) error {
 		logger.Error(err.Error())
 		return err
 	}
-	logger.Infof("Committed changes to '%s' with commit hash: '%s'", repoLocalPath, commitHash.String())
+	logger.Infof("Committed changes to '%s' with commit hash: '%s'", g.RepoLocalPath, commitHash.String())
 	publicKey, err := getSshPublicKey()
 	if err != nil {
 		logger.Error("SSH Key not returned")

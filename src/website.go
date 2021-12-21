@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/bmatcuk/doublestar/v4"
+	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type Website struct {
@@ -18,9 +21,7 @@ type Website struct {
 	GitRepo              GitRepo
 	IndieWeb             IndieWeb
 	PathProcessorSet     PathProcessorSet
-	PathProcessors       []PathProcessor
 	DefaultPathProcessor PathProcessor
-	SiteMap              Sitemap
 }
 
 func NewWebsite(wConfig WebsiteConfig, sourceRootPath, webRoot string) Website {
@@ -46,8 +47,6 @@ func NewWebsite(wConfig WebsiteConfig, sourceRootPath, webRoot string) Website {
 		w.BaseURL = wConfig.SheepsTorProcessing.BaseURL
 		w.PathProcessorSet = NewPathProcessorSet(DefaultPPConfig, wConfig.SheepsTorProcessing.PathProcessorConfigs, w.BaseURL)
 		w.IndieWeb = NewIndieWeb(wConfig.SheepsTorProcessing.IndieWebConfig, w.BaseURL, w.ProcessorRoot)
-		w.SiteMap = NewSitemap(&w.ContentRoot, &w.BaseURL, &w.PathProcessorSet)
-		w.SiteMap.Build(w.IndieWeb.MediaUploadURLRegex, &w.IndieWeb.MediaUploadPath)
 	}
 	return w
 }
@@ -115,31 +114,31 @@ func (w *Website) provisionSources() error {
 			return err
 		}
 		logger.Info(fmt.Sprintf("Git working copy folder: '%s', created OK", w.GitRepo.RepoLocalPath))
-		err = Clone(w.GitRepo.CloneId, w.GitRepo.BranchRef, w.GitRepo.RepoLocalPath)
+		err = w.GitRepo.Clone()
 		if err != nil {
 			logger.Error(err.Error())
 			return err
 		} else {
-			logger.Info(fmt.Sprintf("Cloned sources from '%s' into '%s' OK", w.GitRepo.CloneId, w.GitRepo.RepoLocalPath))
+			logger.Info(fmt.Sprintf("Cloned sources from '%s' into '%s' OK", w.GitRepo.CloneID, w.GitRepo.RepoLocalPath))
 		}
 	} else {
-		err = Pull(w.GitRepo.RepoLocalPath, w.GitRepo.BranchRef)
+		err = w.GitRepo.Pull()
 		if err != nil {
 			logger.Error(err.Error())
 		} else {
-			logger.Info(fmt.Sprintf("Sources for website '%s' pulled from '%s' OK", w.ID, w.GitRepo.CloneId))
+			logger.Info(fmt.Sprintf("Sources for website '%s' pulled from '%s' OK", w.ID, w.GitRepo.CloneID))
 		}
 	}
 	return err
 }
 
 func (w *Website) CommitAndPush(message string) error {
-	err := Pull(w.GitRepo.RepoLocalPath, w.GitRepo.BranchRef)
+	err := w.GitRepo.Pull()
 	if err != nil {
 		logger.Error("Git Pull failed " + err.Error())
 		return err
 	}
-	err = CommitAndPush(w.GitRepo.RepoLocalPath, message)
+	err = w.GitRepo.CommitAndPush(message)
 	if err != nil {
 		logger.Error(err.Error())
 		return err
@@ -158,4 +157,41 @@ func (w *Website) StoreTempMediaFileAndReturnURL(mediaFile multipart.File, fileN
 	}
 	err = os.WriteFile(mediaFilePath, raw, os.ModePerm)
 	return mediaFilePath, mediaFileURL, err
+}
+
+func (w *Website) LoadPage(filePath string) (*Page, error) {
+	fullFilePath := filepath.Join(w.ContentRoot, filePath)
+	p := NewPage(filePath, time.Now(), &w.BaseURL, w.PathProcessorSet.SelectPathProcessorForPath(filePath))
+	err := p.ReadFromFile(fullFilePath)
+	if err != nil {
+		return p, err
+	}
+	return p, err
+}
+
+func (w *Website) SavePage(page *Page, filePath string) error {
+	fullFilePath := filepath.Join(w.ContentRoot, filePath)
+	return page.WriteToFile(fullFilePath)
+}
+
+func (w *Website) GetPagePathForPermalink(permalink string) string {
+	return ""
+}
+
+func (w *Website) GetAllPageFilePaths() ([]string, error) {
+	fSys := os.DirFS(w.ContentRoot)
+	return doublestar.Glob(fSys, "**/index.md")
+}
+
+func (w *Website) DumpSiteMap(writer io.Writer) error {
+	paths, err := w.GetAllPageFilePaths()
+	if err != nil {
+		return err
+	}
+	for _, path := range paths {
+		page, _ := w.LoadPage(path)
+		line := fmt.Sprintf("%s => %s    [%s]\n", path, page.Permalink, page.PathProcessor.Name)
+		writer.Write([]byte(line))
+	}
+	return err
 }

@@ -45,9 +45,26 @@ func main() {
 
 func Scratch() {
 	w := registry.getWebsiteByID("www.paulwalk.net")
-
-	logger.Debugf("webroot = %s", w.WebRoot)
-	//w.SiteMap.Dump(os.Stdout)
+	logger.Info(w.GitRepo.GetHeadCommitID())
+	//filePath := "posts/2003/broadband-britain/index.md"
+	//filePath = "posts/2015/the-active-repository-pattern/index.md"
+	//p, err := w.LoadPage(filePath)
+	//if err != nil {
+	//	logger.Error(err.Error())
+	//}
+	//logger.Infof("Title of page = %s", p.Title)
+	////logger.Infof("Webmention Count = %v", p.WebMentions.Count())
+	//paths, _ := w.GetAllPageFilePaths()
+	//for _, path := range paths {
+	//	page, pageLoadErr := w.LoadPage(path)
+	//	if pageLoadErr != nil {
+	//		logger.Error(pageLoadErr.Error())
+	//	}
+	//	if page.WebMentions.Count() == 0 {
+	//		logger.Infof("This page has %v webmentions: %s", page.WebMentions.Count(), page.FilePath)
+	//	}
+	//}
+	//w.DumpSiteMap( os.Stdout)
 	os.Exit(1)
 }
 

@@ -55,28 +55,22 @@ func (wm *WebMention) Send() {
 
 type WebMentionSet struct {
 	WebMentions []WebMention
-	FilePath    string
 }
 
-func NewWebMentionSet(filePath string) WebMentionSet {
-	var wms = WebMentionSet{
-		FilePath: filePath,
-	}
-
+func NewWebMentionSet() WebMentionSet {
+	var wms = WebMentionSet{}
 	return wms
 }
 
-func (wms *WebMentionSet) LoadFromFile() error {
-	f, err := os.Open(wms.FilePath)
+func (wms *WebMentionSet) LoadFromFile(filePath string) error {
+	f, err := os.Open(filePath)
 	if err != nil {
-		logger.Error(err.Error())
 		return err
 	}
 	defer f.Close()
 	var tempWMSlice []WebMention
 	err = gocsv.UnmarshalFile(f, &tempWMSlice)
 	if err != nil {
-		logger.Error(err.Error())
 		return err
 	}
 	wms.WebMentions = make([]WebMention, 0)
@@ -86,17 +80,17 @@ func (wms *WebMentionSet) LoadFromFile() error {
 	return err
 }
 
-func (wms *WebMentionSet) SaveToFile() error {
-	f, err := os.Create(wms.FilePath)
+func (wms *WebMentionSet) Count() int {
+	return len(wms.WebMentions)
+}
+
+func (wms *WebMentionSet) SaveToFile(filePath string) error {
+	f, err := os.Create(filePath)
 	if err != nil {
-		logger.Error(err.Error())
 		return err
 	}
 	defer f.Close()
 	err = gocsv.Marshal(wms.WebMentions, f)
-	if err != nil {
-		logger.Error(err.Error())
-	}
 	return err
 }
 
