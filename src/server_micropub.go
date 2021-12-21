@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 )
 
 func MicroPubAuthorisationMiddleware(next http.Handler) http.Handler {
@@ -96,6 +97,7 @@ func MicroPubPostHandler(w http.ResponseWriter, r *http.Request) {
 			pageIsNew = true
 		}
 		page.ReadFromString(entry.Properties.Content[0])
+		page.MoveMediaFromTempUploadToLocalFolderAndRewriteLinks(website.IndieWeb.MediaUploadURLRegex, website.IndieWeb.MediaUploadPath, filepath.Dir(filepath.Join(website.ContentRoot, page.FilePath)))
 		err = website.SavePage(page, filePath)
 		if err != nil {
 			logger.Error(err.Error())
