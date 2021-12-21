@@ -89,7 +89,7 @@ func (p *Page) MoveMediaFromTempUploadToLocalFolderAndRewriteLinks(mediaUploadUR
 		newFilePath := filepath.Join(fullLocalFolderPath, mediaFileName)
 		err = os.Rename(oldFilePath, newFilePath)
 		if err != nil {
-			logger.Error(err.Error())
+			logger.Warn(err.Error())
 		}
 	}
 	p.Content = mediaUploadURLRegex.ReplaceAllString(p.Content, "./$2")

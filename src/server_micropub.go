@@ -97,7 +97,6 @@ func MicroPubPostHandler(w http.ResponseWriter, r *http.Request) {
 			pageIsNew = true
 		}
 		page.ReadFromString(entry.Properties.Content[0])
-		page.MoveMediaFromTempUploadToLocalFolderAndRewriteLinks(website.IndieWeb.MediaUploadURLRegex, website.IndieWeb.MediaUploadPath, filepath.Dir(filepath.Join(website.ContentRoot, page.FilePath)))
 		err = website.SavePage(page, filePath)
 		if err != nil {
 			logger.Error(err.Error())
@@ -105,6 +104,8 @@ func MicroPubPostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			logger.Debugf("Wrote page to file at %s", page.FilePath)
+			page.MoveMediaFromTempUploadToLocalFolderAndRewriteLinks(website.IndieWeb.MediaUploadURLRegex, website.IndieWeb.MediaUploadPath, filepath.Dir(filepath.Join(website.ContentRoot, page.FilePath)))
+			err = website.SavePage(page, filePath)
 			w.Header().Set("Location", page.Permalink)
 			if config.DisableGitCommitForDevelopment == false {
 				//err = Pull(website.GitRepo.RepoLocalPath, website.GitRepo.BranchRef)
