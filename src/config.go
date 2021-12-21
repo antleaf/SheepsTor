@@ -1,23 +1,64 @@
 package main
 
 import (
-	"fmt"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
 
-type Config struct {
+type Configuration struct {
 	DebugLogging                   bool
-	SourceRoot                     string     `yaml:"source_root"`
-	WebRoot                        string     `yaml:"webroot"`
-	Port                           int        `yaml:"port"`
-	GitHubWebHookSecretEnvKey      string     `yaml:"github_webhook_secret_env_key"`
-	AkismetApiKeyEnvKey            string     `yaml:"akismet_api_key_env_key"`
-	DisableGitCommitForDevelopment bool       `yaml:"disable_git_commit_for_development"`
-	Websites                       []*Website `yaml:"websites"`
+	SourceRoot                     string          `yaml:"source_root"`
+	WebRoot                        string          `yaml:"webroot"`
+	Port                           int             `yaml:"port"`
+	GitHubWebHookSecretEnvKey      string          `yaml:"github_webhook_secret_env_key"`
+	AkismetApiKeyEnvKey            string          `yaml:"akismet_api_key_env_key"`
+	DisableGitCommitForDevelopment bool            `yaml:"disable_git_commit_for_development"`
+	WebsiteConfigs                 []WebsiteConfig `yaml:"websites"`
 }
 
-func (config *Config) initialise(debugLogging bool, configFilePath string) error {
+type GitRepoConfig struct {
+	CloneId       string `yaml:"clone_id"`
+	RepoName      string `yaml:"repo_name"`
+	BranchName    string `yaml:"branch_name"`
+	BranchRef     string `yaml:"-"`
+	RepoLocalPath string `yaml:"-"`
+}
+
+type PathProcessorConfig struct {
+	Name                  string `yaml:"name"`
+	FolderMatchExpression string `yaml:"folder_match_expression"`
+	UrlGenerationPattern  string `yaml:"url_generation_pattern"`
+	FileGenerationPattern string `yaml:"file_generation_pattern"`
+}
+
+type SheepsTorProcessorConfig struct {
+	BaseURL              string                `yaml:"base_url"`
+	PathProcessorConfigs []PathProcessorConfig `yaml:"path_processors"`
+	IndieWebConfig       IndieWebConfig        `yaml:"indieweb"`
+}
+
+type IndieWebConfig struct {
+	IndieAuthTokenEndpoint          string `yaml:"indieauth_token_endpoint"`
+	MicroPubMediaEndpoint           string `yaml:"micropub_media_endpoint"`
+	IndieAuthId                     string `yaml:"indie_auth_id"`
+	DraftPosts                      bool   `yaml:"draft_posts"`
+	WebMentionIoWebhookSecretEnvKey string `yaml:"webmention_io_webhook_secret_env_key"`
+}
+
+type WebsiteConfig struct {
+	ID                         string `yaml:"id"`
+	Enabled                    bool   `yaml:"enabled"`
+	ContentProcessor           string `yaml:"content_processor"` //either 'hugo' or nil
+	ProcessorRootSubFolderPath string `yaml:"processor_root"`    //e.g. a sub-folder in the repo called 'webroot'
+	ContentRootSubFolderPath   string `yaml:"content_root"`      //for hugo this is 'content' by default
+	//ProcessorRoot              string                   `yaml:"-"`
+	//ContentRoot                string                   `yaml:"-"`
+	//WebRoot                    string                   `yaml:"-"`
+	GitRepoConfig       GitRepoConfig            `yaml:"git"`
+	SheepsTorProcessing SheepsTorProcessorConfig `yaml:"sheepstor"`
+}
+
+func (config *Configuration) initialise(debugLogging bool, configFilePath string) error {
 	config.DebugLogging = debugLogging
 	configData, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
@@ -28,30 +69,4 @@ func (config *Config) initialise(debugLogging bool, configFilePath string) error
 		return err
 	}
 	return err
-}
-
-func (config *Config) configureWebsites() {
-	for _, website := range config.Websites {
-		logger.Debug(fmt.Sprintf("Configuring website '%s'", website.Id))
-		website.Configure(config.SourceRoot, config.WebRoot)
-		logger.Info(fmt.Sprintf("Website '%s' configured OK", website.Id))
-	}
-}
-
-func (config *Config) getWebsiteByRepoNameAndBranchRef(repoName, branchRef string) *Website {
-	for _, v := range config.Websites {
-		if (v.GitRepo.RepoName == repoName) && (v.GitRepo.BranchRef == branchRef) {
-			return v
-		}
-	}
-	return nil
-}
-
-func (config *Config) getWebsiteByID(id string) *Website {
-	for _, website := range config.Websites {
-		if website.Id == id {
-			return website
-		}
-	}
-	return nil
 }

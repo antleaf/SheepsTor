@@ -2,69 +2,54 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 )
 
-type GitRepoConfig struct {
-	CloneId       string `yaml:"clone_id"`
-	RepoName      string `yaml:"repo_name"`
-	BranchName    string `yaml:"branch_name"`
-	BranchRef     string `yaml:"-"`
-	RepoLocalPath string `yaml:"-"`
-}
-
-type SheepsTorProcessorConfig struct {
-	BaseURL                   string           `yaml:"base_url"`
-	PathProcessors            PathProcessorSet `yaml:"path_processing"`
-	WebmentionIoWebhookSecret string           `yaml:"webmention_io_webhook_secret"`
-}
-
 type Website struct {
-	Id                         string                   `yaml:"id"`
-	Enabled                    bool                     `yaml:"enabled"`
-	ContentProcessor           string                   `yaml:"content_processor"` //either 'hugo' or nil
-	ProcessorRootSubFolderPath string                   `yaml:"processor_root"`    //e.g. a sub-folder in the repo called 'webroot'
-	ContentRootSubFolderPath   string                   `yaml:"content_root"`      //for hugo this is 'content' by default
-	ProcessorRoot              string                   `yaml:"-"`
-	ContentRoot                string                   `yaml:"-"`
-	WebRoot                    string                   `yaml:"-"`
-	GitRepo                    GitRepoConfig            `yaml:"git"`
-	SheepsTorProcessing        SheepsTorProcessorConfig `yaml:"sheepstor"`
-	SiteMap                    Sitemap                  `yaml:"-"`
+	ID                   string
+	ContentProcessor     string //either 'hugo' or nil
+	ProcessorRoot        string
+	ContentRoot          string
+	WebRoot              string
+	BaseURL              string
+	GitRepo              GitRepo
+	IndieWeb             IndieWeb
+	PathProcessorSet     PathProcessorSet
+	PathProcessors       []PathProcessor
+	DefaultPathProcessor PathProcessor
+	SiteMap              Sitemap
 }
 
-func (w *Website) Configure(sourceRoot, webRoot string) {
-	w.GitRepo.BranchRef = fmt.Sprintf("refs/heads/%s", w.GitRepo.BranchName)
-	w.GitRepo.RepoLocalPath = filepath.Join(sourceRoot, w.Id)
-	if w.ProcessorRootSubFolderPath != "" {
-		w.ProcessorRoot = filepath.Join(w.GitRepo.RepoLocalPath, w.ProcessorRootSubFolderPath)
+func NewWebsite(wConfig WebsiteConfig, sourceRootPath, webRoot string) Website {
+	var w = Website{
+		ID:               wConfig.ID,
+		ContentProcessor: wConfig.ContentProcessor,
+	}
+	w.WebRoot = filepath.Join(webRoot, w.ID)
+	w.GitRepo = NewGitRepo(wConfig.GitRepoConfig, filepath.Join(sourceRootPath, w.ID))
+	if wConfig.ProcessorRootSubFolderPath != "" {
+		w.ProcessorRoot = filepath.Join(w.GitRepo.RepoLocalPath, wConfig.ProcessorRootSubFolderPath)
 	} else {
 		w.ProcessorRoot = w.GitRepo.RepoLocalPath
 	}
-	if w.ContentRootSubFolderPath != "" {
-		w.ContentRoot = filepath.Join(w.ProcessorRoot, w.ContentRootSubFolderPath)
+	if wConfig.ContentRootSubFolderPath != "" {
+		w.ContentRoot = filepath.Join(w.ProcessorRoot, wConfig.ContentRootSubFolderPath)
 	} else if w.ContentProcessor == "hugo" || w.ContentProcessor == "sheepstor" {
 		w.ContentRoot = filepath.Join(w.ProcessorRoot, "content")
 	} else {
 		w.ContentRoot = w.ProcessorRoot
 	}
 	if w.ContentProcessor == "sheepstor" {
-		for _, pathProcessor := range w.SheepsTorProcessing.PathProcessors.Processors {
-			pathProcessor.Initialise(w.SheepsTorProcessing.BaseURL)
-		}
-		defaultPathProcessor := PathProcessor{Name: "Built-in Default Path Processor", FolderMatchExpression: "(.+)/index\\.md", UrlGenerationPattern: "$1/"}
-		defaultPathProcessor.Initialise(w.SheepsTorProcessing.BaseURL)
-		w.SheepsTorProcessing.PathProcessors.DefaultPathProcessor = &defaultPathProcessor
-		w.SheepsTorProcessing.PathProcessors.Processors = append(w.SheepsTorProcessing.PathProcessors.Processors, &defaultPathProcessor)
-		w.RegenerateSiteMap()
+		w.BaseURL = wConfig.SheepsTorProcessing.BaseURL
+		w.PathProcessorSet = NewPathProcessorSet(DefaultPPConfig, wConfig.SheepsTorProcessing.PathProcessorConfigs, w.BaseURL)
+		w.IndieWeb = NewIndieWeb(wConfig.SheepsTorProcessing.IndieWebConfig, w.BaseURL, w.ProcessorRoot)
+		w.SiteMap = NewSitemap(&w.ContentRoot, &w.BaseURL, &w.PathProcessorSet)
+		w.SiteMap.Build(w.IndieWeb.MediaUploadURLRegex, &w.IndieWeb.MediaUploadPath)
 	}
-	w.WebRoot = filepath.Join(webRoot, w.Id)
-}
-
-func (w *Website) RegenerateSiteMap() {
-	w.SiteMap = Sitemap{ContentRoot: w.ContentRoot, BaseURL: w.SheepsTorProcessing.BaseURL}
-	w.SiteMap.Build(w.SheepsTorProcessing.PathProcessors)
+	return w
 }
 
 func (w *Website) Build() error {
@@ -115,7 +100,7 @@ func (w *Website) Build() error {
 		logger.Error(err.Error())
 		return err
 	}
-	logger.Info(fmt.Sprintf("Built website '%s' OK", w.Id))
+	logger.Info(fmt.Sprintf("Built website '%s' OK", w.ID))
 	return err
 }
 
@@ -142,7 +127,7 @@ func (w *Website) provisionSources() error {
 		if err != nil {
 			logger.Error(err.Error())
 		} else {
-			logger.Info(fmt.Sprintf("Sources for website '%s' pulled from '%s' OK", w.Id, w.GitRepo.CloneId))
+			logger.Info(fmt.Sprintf("Sources for website '%s' pulled from '%s' OK", w.ID, w.GitRepo.CloneId))
 		}
 	}
 	return err
@@ -160,4 +145,17 @@ func (w *Website) CommitAndPush(message string) error {
 		return err
 	}
 	return err
+}
+
+func (w *Website) StoreTempMediaFileAndReturnURL(mediaFile multipart.File, fileName string) (string, string, error) {
+	mediaFilePath := filepath.Join(w.IndieWeb.MediaUploadPath, fileName)
+	mediaFileURL := fmt.Sprintf("%s/%s", w.IndieWeb.MediaUploadBaseURL, fileName)
+	defer mediaFile.Close()
+	raw, err := ioutil.ReadAll(mediaFile)
+	if err != nil {
+		logger.Error(err.Error())
+		return mediaFilePath, mediaFileURL, err
+	}
+	err = os.WriteFile(mediaFilePath, raw, os.ModePerm)
+	return mediaFilePath, mediaFileURL, err
 }

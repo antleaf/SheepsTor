@@ -1,76 +1,98 @@
 package main
 
 import (
+	"fmt"
 	"github.com/bmatcuk/doublestar/v4"
+	"io"
 	"os"
-	"path/filepath"
-	"strings"
+	"regexp"
+	"time"
 )
 
-type SitemapNode struct {
-	FilePath      string
-	Permalink     string
-	PathProcessor *PathProcessor
-	ContentRoot   *string
-	BaseURL       *string
-}
-
 type Sitemap struct {
-	Nodes       []*SitemapNode
-	ContentRoot string
-	BaseURL     string
+	ContentRoot      *string
+	BaseURL          *string
+	PathProcessorSet *PathProcessorSet
+	Pages            []*Page
 }
 
-func (s *Sitemap) Build(pathProcessors PathProcessorSet) {
-	s.Nodes = make([]*SitemapNode, 0)
-	fsys := os.DirFS(s.ContentRoot)
-	logger.Debug(s.ContentRoot)
-	paths, err := doublestar.Glob(fsys, "**/index.md")
+func NewSitemap(contentRoot, BaseURL *string, pathProcessorSet *PathProcessorSet) Sitemap {
+	var s = Sitemap{
+		ContentRoot:      contentRoot,
+		BaseURL:          BaseURL,
+		PathProcessorSet: pathProcessorSet,
+	}
+	s.Pages = make([]*Page, 0)
+	return s
+}
+
+func (s *Sitemap) AddPage(page Page) {
+	s.Pages = append(s.Pages, &page)
+}
+
+func (s *Sitemap) Build(mediaUploadURLRegex *regexp.Regexp, mediaUploadPath *string) {
+	s.Pages = make([]*Page, 0)
+	fSys := os.DirFS(*s.ContentRoot)
+	logger.Debugf("Building sitemap for content root: %s", *s.ContentRoot)
+	paths, err := doublestar.Glob(fSys, "**/index.md")
 	if err != nil {
 		logger.Error(err.Error())
 	}
 	for _, path := range paths {
-		sitemapNode := SitemapNode{FilePath: path, ContentRoot: &s.ContentRoot, BaseURL: &s.BaseURL}
-		pathProcessors.AssignPathProcessorToSitemapNode(&sitemapNode)
-		sitemapNode.ExtrapolatePermalink()
-		s.Nodes = append(s.Nodes, &sitemapNode)
+		page := NewPage(path, time.Now(), s.ContentRoot, s.BaseURL, s.PathProcessorSet, mediaUploadURLRegex, mediaUploadPath)
+		page.ReadFromFile(false, false)
+		s.AddPage(*page)
 	}
 }
 
-func (sn *SitemapNode) LoadPage() Page {
-	page := NewPage()
-	page.FilePath = filepath.Join(*sn.ContentRoot, sn.FilePath)
-	page.Permalink = sn.Permalink
-	page.BaseURL = sn.BaseURL
-	page.ReadFromFile()
-	return page
-}
-
-func (sn *SitemapNode) ExtrapolatePermalink() {
-	permalink := sn.PathProcessor.FolderRegex.ReplaceAllString(sn.FilePath, sn.PathProcessor.UrlGenerationPattern)
-	page := sn.LoadPage()
-	permalink = strings.Replace(permalink, "{year}", page.Metadata.Year(), -1)
-	permalink = strings.Replace(permalink, "{month}", page.Metadata.Month(), -1)
-	permalink = strings.Replace(permalink, "{slug}", page.Slug, -1)
-	sn.Permalink = *sn.BaseURL + "/" + permalink
-}
-
-func (s *Sitemap) GetNodeByPermalink(permalink string) *SitemapNode {
-	for _, node := range s.Nodes {
-		if node.Permalink == permalink {
-			return node
+func (s *Sitemap) GetPageByPermalink(permalink string) *Page {
+	for _, page := range s.Pages {
+		if page.Permalink == permalink {
+			return page
 		}
 	}
 	return nil
 }
 
-//func (s *Sitemap) GetNodeByPermalink(permalink string) (*SitemapNode, error) {
-//	var err error
-//	for _, node := range s.Nodes {
-//		if node.Permalink == permalink {
-//			return node, err
-//		}
+func (s *Sitemap) GetPageByFilePath(filePath string) *Page {
+	for _, page := range s.Pages {
+		if page.FilePath == filePath {
+			return page
+		}
+	}
+	return nil
+}
+
+func (s *Sitemap) GetOrCreatePage(filePath string, published time.Time, contentRoot, baseURL *string, pps *PathProcessorSet, mediaUploadURLRegex *regexp.Regexp, mediaUploadPath *string) (*Page, bool) {
+	logger.Debugf("Creating page with filepath = %s | contentRoot = %s | baseURL = %s", filePath, *contentRoot, *baseURL)
+	newlyCreated := false
+	var page *Page
+	if filePath != "" {
+		page = s.GetPageByFilePath(filePath)
+	}
+	if page == nil {
+		page = NewPage(filePath, published, contentRoot, baseURL, pps, mediaUploadURLRegex, mediaUploadPath)
+		newlyCreated = true
+	}
+	s.AddPage(*page)
+	return page, newlyCreated
+}
+
+//func (s *Sitemap) GetOrCreatePage(filePath string, pathProcessors PathProcessorSet) (*SitemapNode, bool) {
+//	node := s.GetNodeByFilePath(filePath)
+//	if node == nil {
+//		node = &SitemapNode{FilePath: filePath, ContentRoot: &s.ContentRoot, BaseURL: &s.BaseURL}
+//		pathProcessors.AssignPathProcessorToSitemapNode(node)
+//		node.ExtrapolatePermalink()
+//		s.Nodes = append(s.Nodes, node)
+//		return node, true
 //	}
-//	err = errors.New("sitemap node with permalink " + permalink + " not found")
-//	return &SitemapNode{}, err
+//	return node, false
 //}
+
+func (s *Sitemap) Dump(w io.Writer) {
+	for _, p := range s.Pages {
+		line := fmt.Sprintf("%s => %s [%s]\n", p.FilePath, p.Permalink, p.PathProcessor.Name)
+		w.Write([]byte(line))
+	}
+}

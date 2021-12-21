@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-git/go-git/v5"
 	_ "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -9,6 +10,25 @@ import (
 	"os/user"
 	"path/filepath"
 )
+
+type GitRepo struct {
+	CloneId       string
+	RepoName      string
+	BranchName    string
+	BranchRef     string
+	RepoLocalPath string
+}
+
+func NewGitRepo(gitConfig GitRepoConfig, localPath string) GitRepo {
+	var g = GitRepo{
+		CloneId:       gitConfig.CloneId,
+		RepoName:      gitConfig.RepoName,
+		BranchName:    gitConfig.BranchName,
+		RepoLocalPath: localPath,
+	}
+	g.BranchRef = fmt.Sprintf("refs/heads/%s", g.BranchName)
+	return g
+}
 
 func Clone(cloneID, branchRef, repoLocalPath string) error {
 	var err error

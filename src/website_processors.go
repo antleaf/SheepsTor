@@ -57,11 +57,9 @@ func processWebsiteInSynchronousWorker(website *Website, wg *sync.WaitGroup) {
 
 func ProcessAllWebsites() {
 	var wg sync.WaitGroup
-	for _, website := range SheepsTorConfig.Websites {
-		if website.Enabled == true {
-			wg.Add(1)
-			go processWebsiteInSynchronousWorker(website, &wg)
-		}
+	for _, website := range registry.WebSites {
+		wg.Add(1)
+		go processWebsiteInSynchronousWorker(website, &wg)
 	}
 	wg.Wait()
 	systemReadyToAcceptUpdateRequests = true

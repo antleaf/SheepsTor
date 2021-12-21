@@ -24,15 +24,15 @@ func (ct *CustomTime) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
-type WebmentionIOPayloadSourcePostAuthor struct {
+type WebMentionIOPayloadSourcePostAuthor struct {
 	Name  string `json:"name"`
 	Photo string `json:"photo"`
 	URL   string `json:"url"`
 }
 
-type WebmentionIOPayloadSourcePost struct {
+type WebMentionIOPayloadSourcePost struct {
 	Type       string                              `json:"type"`
-	Author     WebmentionIOPayloadSourcePostAuthor `json:"author"`
+	Author     WebMentionIOPayloadSourcePostAuthor `json:"author"`
 	URL        string                              `json:"url"`
 	Published  CustomTime                          `json:"published"`
 	Name       string                              `json:"name"`
@@ -40,30 +40,29 @@ type WebmentionIOPayloadSourcePost struct {
 	WmProperty string                              `json:"wm-property"`
 }
 
-type WebmentionIOPayload struct {
+type WebMentionIOPayload struct {
 	Source  string                        `json:"source"`
 	Target  string                        `json:"target"`
 	Secret  string                        `json:"secret"`
 	Deleted bool                          `json:"deleted,omitempty"`
-	Post    WebmentionIOPayloadSourcePost `json:"post"`
+	Post    WebMentionIOPayloadSourcePost `json:"post"`
 }
 
-func (w *WebmentionIOPayload) LoadAndValidate(payloadJson []byte, envNameForSecret string) (Webmention, error) {
-	webmention := Webmention{}
-	//logger.Debug(string(payloadJson))
+func (w *WebMentionIOPayload) LoadAndValidate(payloadJson []byte, envNameForSecret string) (WebMention, error) {
+	webMention := WebMention{}
 	err := json.Unmarshal(payloadJson, w)
 	if err != nil {
 		logger.Error(err.Error())
-		return webmention, err
+		return webMention, err
 	}
 	if w.Secret != os.Getenv(envNameForSecret) {
 		err = errors.New("secrets do not match - not authorised")
 		logger.Error(err.Error())
-		return webmention, err
+		return webMention, err
 	}
-	webmention.Status = WMStatusReceived
-	webmention.Source = w.Source
-	webmention.Target = w.Target
-	webmention.Date = time.Now()
-	return webmention, err
+	webMention.Status = WMStatusReceived
+	webMention.Source = w.Source
+	webMention.Target = w.Target
+	webMention.Date = time.Now()
+	return webMention, err
 }

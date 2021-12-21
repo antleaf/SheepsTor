@@ -16,21 +16,14 @@ const (
 	WMStatusFailed          = "failed"
 )
 
-type Webmention struct {
+type WebMention struct {
 	Source string    `csv:"source"`
 	Target string    `csv:"target""`
 	Status string    `csv:"status""`
 	Date   time.Time `csv:"date""`
 }
 
-//type Webmention struct {
-//	Source string `yaml:"source"`
-//	Target string `yaml:"target"`
-//	Status string `yaml:"status"`
-//	Date   time.Time
-//}
-
-func (wm *Webmention) Send() {
+func (wm *WebMention) Send() {
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -41,90 +34,105 @@ func (wm *Webmention) Send() {
 		logger.Debugf("No endpoint found for %s", wm.Target)
 		return
 	} else {
-		logger.Debugf("Webmention endpoint found for %s - attempting to send webmention", wm.Target)
+		logger.Debugf("WebMention endpoint found for %s - attempting to send webmention", wm.Target)
 		//logger.Debugf("Endpoint = %s", endpoint)
 	}
 	resp, err := client.SendWebmention(endpoint, wm.Source, wm.Target)
 	if err != nil {
 		wm.Status = WMStatusFailed
-		logger.Errorf("Webmention failed to be sent for %s with error %s", wm.Target, err.Error())
+		logger.Errorf("WebMention failed to be sent for %s with error %s", wm.Target, err.Error())
 		return
 	}
 	if resp.StatusCode >= 200 && resp.StatusCode <= 299 {
 		wm.Status = WMStatusSent
-		logger.Infof("Webmention sent successfully for %s with HTTP response %v", wm.Target, resp.StatusCode)
+		logger.Infof("WebMention sent successfully for %s with HTTP response %v", wm.Target, resp.StatusCode)
 	} else {
 		wm.Status = WMStatusFailed
-		logger.Debugf("Webmention failed to be sent for %s with error %s", wm.Target, err.Error())
+		logger.Debugf("WebMention failed to be sent for %s with error %s", wm.Target, err.Error())
 		return
 	}
 }
 
-type WebmentionSet []*Webmention
+type WebMentionSet struct {
+	WebMentions []WebMention
+	FilePath    string
+}
 
-func (wms *WebmentionSet) LoadFromFile(filePath string) error {
-	f, err := os.Open(filePath)
+func NewWebMentionSet(filePath string) WebMentionSet {
+	var wms = WebMentionSet{
+		FilePath: filePath,
+	}
+
+	return wms
+}
+
+func (wms *WebMentionSet) LoadFromFile() error {
+	f, err := os.Open(wms.FilePath)
 	if err != nil {
 		logger.Error(err.Error())
 		return err
 	}
 	defer f.Close()
-	tempWMSlice := []*Webmention{}
+	var tempWMSlice []WebMention
 	err = gocsv.UnmarshalFile(f, &tempWMSlice)
+	if err != nil {
+		logger.Error(err.Error())
+		return err
+	}
+	wms.WebMentions = make([]WebMention, 0)
 	for _, wm := range tempWMSlice {
-		wms.AddWebmention(*wm)
+		wms.AddWebMention(wm)
 	}
 	return err
 }
 
-func (wms *WebmentionSet) SaveToFile(filePath string) error {
-	f, err := os.Create(filePath)
+func (wms *WebMentionSet) SaveToFile() error {
+	f, err := os.Create(wms.FilePath)
 	if err != nil {
 		logger.Error(err.Error())
 		return err
 	}
 	defer f.Close()
-	err = gocsv.Marshal(wms, f)
+	err = gocsv.Marshal(wms.WebMentions, f)
 	if err != nil {
 		logger.Error(err.Error())
 	}
 	return err
 }
 
-func (wms *WebmentionSet) AddWebmention(wm Webmention) {
-	if wms.GetWebmentionBySourceAndTarget(wm.Source, wm.Target) == nil {
-		*wms = append(*wms, &wm)
-		//logger.Debug("Added webmention")
+func (wms *WebMentionSet) AddWebMention(wm WebMention) {
+	if wms.GetWebMentionBySourceAndTarget(wm.Source, wm.Target) == nil {
+		wms.WebMentions = append(wms.WebMentions, wm)
 	}
 }
 
-func (wms *WebmentionSet) Sort() {
-	sort.Slice(wms, func(i, j int) bool {
-		return (*wms)[i].Date.Before((*wms)[j].Date)
+func (wms *WebMentionSet) Sort() {
+	sort.Slice(wms.WebMentions, func(i, j int) bool {
+		return (wms.WebMentions)[i].Date.Before((wms.WebMentions)[j].Date)
 	})
 }
 
-func (wms *WebmentionSet) GetWebmentionBySourceAndTarget(source, target string) *Webmention {
-	for _, wm := range *wms {
+func (wms *WebMentionSet) GetWebMentionBySourceAndTarget(source, target string) *WebMention {
+	for _, wm := range wms.WebMentions {
 		if (wm.Source == source) && (wm.Target == target) {
-			return wm
+			return &wm
 		}
 	}
 	return nil
 }
 
-func (wms *WebmentionSet) GetWebmentionBySource(source string) *Webmention {
-	for _, wm := range *wms {
+func (wms *WebMentionSet) GetWebMentionBySource(source string) *WebMention {
+	for _, wm := range wms.WebMentions {
 		if wm.Source == source {
-			return wm
+			return &wm
 		}
 	}
 	return nil
 }
 
-func (wms *WebmentionSet) ProcessPending() error {
+func (wms *WebMentionSet) SendPendingWebMentions() error {
 	var err error
-	for _, wm := range *wms {
+	for _, wm := range wms.WebMentions {
 		if wm.Status == WMStatusPending {
 			logger.Debugf("Processing pending webmention from %s to %s", wm.Source, wm.Target)
 			wm.Send()

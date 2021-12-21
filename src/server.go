@@ -22,19 +22,20 @@ func ConfigureRouter() chi.Router {
 	//r.Post("/comment", CommentPostHandler)
 	r.Post("/update", GitHubWebHookHandler)
 	r.Post("/webmentionio/{websiteID}", WebMentionIOHookHandler)
-	//r.Route("/micropub/{websiteID}", func(r chi.Router) {
-	//	r.Use(MicroPubAuthorisationMiddleware)
-	//	r.Get("/", MicroPubGetHandler)
-	//	r.Post("/", MicroPubPostHandler)
-	//	r.Post("/media", MicroPubMediaHandler)
-	//})
+	//r.Get("/micropub-discovery/{websiteID}", MicroPubDiscoveryHandler)
+	r.Route("/micropub/{websiteID}", func(r chi.Router) {
+		r.Use(MicroPubAuthorisationMiddleware)
+		r.Get("/", MicroPubGetHandler)
+		r.Post("/", MicroPubPostHandler)
+		r.Post("/media", MicroPubMediaHandler)
+	})
 	return r
 }
 
 func WebMentionIOHookHandler(w http.ResponseWriter, r *http.Request) {
 	websiteID := chi.URLParam(r, "websiteID")
-	logger.Debugf("Received webmention.io webhook for website with ID: %s", websiteID)
-	website := SheepsTorConfig.getWebsiteByID(websiteID)
+	logger.Debugf("Received webMention.io webhook for website with ID: %s", websiteID)
+	website := registry.getWebsiteByID(websiteID)
 	if website == nil {
 		logger.Error(errors.New("no website found with ID: " + websiteID))
 		http.Error(w, "bad request", http.StatusBadRequest)
@@ -46,23 +47,22 @@ func WebMentionIOHookHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	webmentionPayload := WebmentionIOPayload{}
-	webmention, err := webmentionPayload.LoadAndValidate(payloadJson, website.SheepsTorProcessing.WebmentionIoWebhookSecret)
+	webMentionPayload := WebMentionIOPayload{}
+	webMention, err := webMentionPayload.LoadAndValidate(payloadJson, website.IndieWeb.WebMentionIoWebhookSecret)
 	if err != nil {
 		logger.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	logger.Debugf("Processing incoming webmention with source: %s & target: %s...", webmention.Source, webmention.Target)
-	pageNode := website.SiteMap.GetNodeByPermalink(webmention.Target)
-	if pageNode == nil {
-		logger.Error(errors.New("local webmention target not found: " + webmention.Target))
+	logger.Debugf("Processing incoming webMention with source: %s & target: %s...", webMention.Source, webMention.Target)
+	page := website.SiteMap.GetPageByPermalink(webMention.Target)
+	if page == nil {
+		logger.Error(errors.New("local webMention target not found: " + webMention.Target))
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	page := pageNode.LoadPage()
-	page.Webmentions.AddWebmention(webmention)
-	page.WriteToFile(true)
+	page.WebMentions.AddWebMention(webMention)
+	page.WriteToFile(true, true)
 }
 
 func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
@@ -74,7 +74,7 @@ func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
 			resp.WriteHeader(http.StatusServiceUnavailable)
 		}
 	} else if req.Method == http.MethodPost {
-		payload, err := github.ValidatePayload(req, []byte(os.Getenv(SheepsTorConfig.GitHubWebHookSecretEnvKey)))
+		payload, err := github.ValidatePayload(req, []byte(os.Getenv(config.GitHubWebHookSecretEnvKey)))
 		if err != nil {
 			logger.Error(err.Error())
 			return
@@ -87,7 +87,7 @@ func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
 		}
 		switch e := event.(type) {
 		case *github.PushEvent:
-			websitePtr := SheepsTorConfig.getWebsiteByRepoNameAndBranchRef(e.GetRepo().GetFullName(), e.GetRef())
+			websitePtr := registry.getWebsiteByRepoNameAndBranchRef(e.GetRepo().GetFullName(), e.GetRef())
 			if websitePtr != nil {
 				ProcessWebsite(websitePtr)
 			}

@@ -10,7 +10,8 @@ import (
 )
 
 var logger *zap.SugaredLogger
-var SheepsTorConfig = Config{}
+var config = Configuration{}
+var registry WebsiteRegistry
 var systemReadyToAcceptUpdateRequests bool
 var router chi.Router
 
@@ -20,20 +21,19 @@ func main() {
 	configFilePathPtr := flag.String("config", "./config/config.yaml", "-config <file_path>")
 	updatePtr := flag.String("update", "", "-update all|<some_id>")
 	flag.Parse()
-	err := (&SheepsTorConfig).initialise(*debugPtr, *configFilePathPtr)
+	err := (&config).initialise(*debugPtr, *configFilePathPtr)
 	if err != nil {
 		fmt.Print(err.Error() + "\n")
 		fmt.Printf("Halting execution because SheepsTorConfig file not loaded from %s\n", *configFilePathPtr)
 		os.Exit(1)
 	}
-	logger, err = ConfigureZapSugarLogger(SheepsTorConfig.DebugLogging)
-	if SheepsTorConfig.DebugLogging {
+	logger, err = ConfigureZapSugarLogger(config.DebugLogging)
+	if config.DebugLogging {
 		logger.Infof("Debugging enabled")
 	}
-	logger.Infof("WebRoot folder path set to: %s", SheepsTorConfig.WebRoot)
-	logger.Infof("WebRoot folder path set to: %s", SheepsTorConfig.WebRoot)
-	logger.Infof("Source Root folder path set to: %s", SheepsTorConfig.SourceRoot)
-	SheepsTorConfig.configureWebsites()
+	logger.Infof("WebRoot folder path set to: %s", config.WebRoot)
+	logger.Infof("Source Root folder path set to: %s", config.SourceRoot)
+	registry = NewRegistry(config.WebsiteConfigs, config.SourceRoot, config.WebRoot)
 	router = ConfigureRouter()
 	//Scratch()
 	if *updatePtr != "" {
@@ -44,11 +44,10 @@ func main() {
 }
 
 func Scratch() {
-	//w := SheepsTorConfig.getWebsiteByID("www.paulwalk.net")
-	//for _, node := range w.SiteMap.Nodes {
-	//	//page := node.LoadPage()
-	//	//page.WriteToFile(true)
-	//}
+	w := registry.getWebsiteByID("www.paulwalk.net")
+
+	logger.Debugf("webroot = %s", w.WebRoot)
+	//w.SiteMap.Dump(os.Stdout)
 	os.Exit(1)
 }
 
@@ -57,13 +56,13 @@ func runAsCLIProcess(sitesToUpdate string) {
 	if sitesToUpdate == "all" {
 		ProcessAllWebsites()
 	} else {
-		ProcessWebsite(SheepsTorConfig.getWebsiteByID(sitesToUpdate))
+		ProcessWebsite(registry.getWebsiteByID(sitesToUpdate))
 	}
 }
 
 func runAsHTTPProcess() {
-	logger.Info(fmt.Sprintf("Running as HTTP Process on port %d", SheepsTorConfig.Port))
-	err := http.ListenAndServe(fmt.Sprintf(":%v", SheepsTorConfig.Port), router)
+	logger.Info(fmt.Sprintf("Running as HTTP Process on port %d", config.Port))
+	err := http.ListenAndServe(fmt.Sprintf(":%v", config.Port), router)
 	if err != nil {
 		logger.Error(err.Error())
 	}
