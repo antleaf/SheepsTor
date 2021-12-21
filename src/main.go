@@ -35,7 +35,7 @@ func main() {
 	logger.Infof("Source Root folder path set to: %s", config.SourceRoot)
 	registry = NewRegistry(config.WebsiteConfigs, config.SourceRoot, config.WebRoot)
 	router = ConfigureRouter()
-	Scratch()
+	//Scratch()
 	if *updatePtr != "" {
 		runAsCLIProcess(*updatePtr)
 	} else {
