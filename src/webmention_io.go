@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"os"
 	"strings"
 	"time"
 )
@@ -48,18 +47,19 @@ type WebMentionIOPayload struct {
 	Post    WebMentionIOPayloadSourcePost `json:"post"`
 }
 
-func (w *WebMentionIOPayload) LoadAndValidate(payloadJson []byte, envNameForSecret string) (WebMention, error) {
+func (w *WebMentionIOPayload) LoadAndValidate(payloadJson []byte, secret string) (WebMention, error) {
 	webMention := WebMention{}
 	err := json.Unmarshal(payloadJson, w)
 	if err != nil {
 		logger.Error(err.Error())
 		return webMention, err
 	}
-	if w.Secret != os.Getenv(envNameForSecret) {
-		err = errors.New("secrets do not match - not authorised")
+	if w.Secret != secret {
+		err = errors.New("webMention IO secrets do not match - not authorised")
 		logger.Error(err.Error())
 		return webMention, err
 	}
+	logger.Info("WebMention IO authorised OK")
 	webMention.Status = WMStatusReceived
 	webMention.Source = w.Source
 	webMention.Target = w.Target

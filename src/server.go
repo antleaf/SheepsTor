@@ -55,15 +55,30 @@ func WebMentionIOHookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	logger.Debugf("Processing incoming webMention with source: %s & target: %s...", webMention.Source, webMention.Target)
-	pageFullFilePath := website.GetPagePathForPermalink(webMention.Target)
-	page, err := website.LoadPage(pageFullFilePath) //TODO: GetPagePathForPermalink() needs to be developed
+	pageFilePath := website.GetPagePathForPermalink(webMention.Target)
+	page, err := website.LoadPage(pageFilePath) //TODO: GetPagePathForPermalink() needs to be developed
 	if err != nil {
 		logger.Error(errors.New("local webMention target not found: " + webMention.Target))
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 	page.WebMentions.AddWebMention(webMention)
-	page.WriteToFile(pageFullFilePath)
+	website.SavePage(page, pageFilePath)
+	if config.DisableGitCommitForDevelopment == false {
+		err = website.CommitAndPush("Added or updated page on " + website.ID)
+		if err != nil {
+			logger.Error("Git Commit & Push failed " + err.Error())
+			http.Error(w, "unable to commit changes to git", http.StatusBadRequest)
+			return
+		}
+		err = website.Build()
+		if err != nil {
+			logger.Error(err.Error())
+			http.Error(w, "unable to rebuild website", http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
 }
 
 func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {

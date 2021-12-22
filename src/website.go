@@ -136,12 +136,10 @@ func (w *Website) provisionSources() error {
 func (w *Website) CommitAndPush(message string) error {
 	err := w.GitRepo.Pull()
 	if err != nil {
-		logger.Error("Git Pull failed " + err.Error())
 		return err
 	}
 	err = w.GitRepo.CommitAndPush(message)
 	if err != nil {
-		logger.Error(err.Error())
 		return err
 	}
 	return err

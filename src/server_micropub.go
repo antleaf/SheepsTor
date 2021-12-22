@@ -108,30 +108,22 @@ func MicroPubPostHandler(w http.ResponseWriter, r *http.Request) {
 			err = website.SavePage(page, filePath)
 			w.Header().Set("Location", page.Permalink)
 			if config.DisableGitCommitForDevelopment == false {
-				//err = Pull(website.GitRepo.RepoLocalPath, website.GitRepo.BranchRef)
-				//if err != nil {
-				//	logger.Error("Git Pull failed " + err.Error())
-				//	http.Error(w, "invalid request", http.StatusBadRequest)
-				//	return
-				//}
 				err = website.CommitAndPush("Added or updated page on " + website.ID)
 				if err != nil {
 					logger.Error("Git Commit & Push failed " + err.Error())
 					http.Error(w, "unable to commit changes to git", http.StatusBadRequest)
 					return
-				} else {
-					err = website.Build()
-					if err != nil {
-						logger.Error(err.Error())
-						http.Error(w, "unable to rebuild website", http.StatusBadRequest)
-						return
-					}
-					if pageIsNew {
-						w.WriteHeader(http.StatusCreated)
-					} else {
-						w.WriteHeader(http.StatusOK)
-					}
+				}
+				err = website.Build()
+				if err != nil {
+					logger.Error(err.Error())
+					http.Error(w, "unable to rebuild website", http.StatusBadRequest)
 					return
+				}
+				if pageIsNew {
+					w.WriteHeader(http.StatusCreated)
+				} else {
+					w.WriteHeader(http.StatusOK)
 				}
 			}
 		}
