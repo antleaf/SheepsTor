@@ -170,6 +170,8 @@ func (w *Website) LoadPage(filePath string) (*Page, error) {
 
 func (w *Website) SavePage(page *Page, filePath string) error {
 	fullFilePath := filepath.Join(w.ContentRoot, filePath)
+	page.ExtractLinksForWebMentions(&w.BaseURL)
+	page.WebMentions.SendPendingWebMentions()
 	return page.WriteToFile(fullFilePath)
 }
 

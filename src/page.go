@@ -17,7 +17,7 @@ type Page struct {
 	Published     time.Time
 	Metadata      FrontMatter
 	Content       string
-	WebMentions   *WebMentionSet
+	WebMentions   WebMentionSet
 	PathProcessor *PathProcessor
 }
 
@@ -31,8 +31,7 @@ func NewPage(filePath string, published time.Time, baseURL *string, pp *PathProc
 	page.Title = strings.ReplaceAll(page.Slug, "_", " ")
 	page.Title = strings.Title(page.Title)
 	page.ExtrapolatePermalink(baseURL)
-	webMentionSet := NewWebMentionSet()
-	page.WebMentions = &webMentionSet
+	page.WebMentions = NewWebMentionSet()
 	return &page
 }
 

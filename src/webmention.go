@@ -33,10 +33,9 @@ func (wm *WebMention) Send() {
 		wm.Status = WMStatusFailed
 		logger.Debugf("No endpoint found for %s", wm.Target)
 		return
-	} else {
-		logger.Debugf("WebMention endpoint found for %s - attempting to send webmention", wm.Target)
-		//logger.Debugf("Endpoint = %s", endpoint)
 	}
+	logger.Debugf("WebMention endpoint found for %s - attempting to send webmention", wm.Target)
+	//logger.Debugf("Endpoint = %s", endpoint)
 	resp, err := client.SendWebmention(endpoint, wm.Source, wm.Target)
 	if err != nil {
 		wm.Status = WMStatusFailed
@@ -54,7 +53,7 @@ func (wm *WebMention) Send() {
 }
 
 type WebMentionSet struct {
-	WebMentions []WebMention
+	WebMentions []*WebMention
 }
 
 func NewWebMentionSet() WebMentionSet {
@@ -73,7 +72,7 @@ func (wms *WebMentionSet) LoadFromFile(filePath string) error {
 	if err != nil {
 		return err
 	}
-	wms.WebMentions = make([]WebMention, 0)
+	wms.WebMentions = make([]*WebMention, 0)
 	for _, wm := range tempWMSlice {
 		wms.AddWebMention(wm)
 	}
@@ -96,7 +95,7 @@ func (wms *WebMentionSet) SaveToFile(filePath string) error {
 
 func (wms *WebMentionSet) AddWebMention(wm WebMention) {
 	if wms.GetWebMentionBySourceAndTarget(wm.Source, wm.Target) == nil {
-		wms.WebMentions = append(wms.WebMentions, wm)
+		wms.WebMentions = append(wms.WebMentions, &wm)
 	}
 }
 
@@ -109,7 +108,7 @@ func (wms *WebMentionSet) Sort() {
 func (wms *WebMentionSet) GetWebMentionBySourceAndTarget(source, target string) *WebMention {
 	for _, wm := range wms.WebMentions {
 		if (wm.Source == source) && (wm.Target == target) {
-			return &wm
+			return wm
 		}
 	}
 	return nil
@@ -118,7 +117,7 @@ func (wms *WebMentionSet) GetWebMentionBySourceAndTarget(source, target string) 
 func (wms *WebMentionSet) GetWebMentionBySource(source string) *WebMention {
 	for _, wm := range wms.WebMentions {
 		if wm.Source == source {
-			return &wm
+			return wm
 		}
 	}
 	return nil

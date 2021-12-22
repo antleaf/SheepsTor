@@ -64,6 +64,12 @@ func WebMentionIOHookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	page.WebMentions.AddWebMention(webMention)
 	website.SavePage(page, pageFilePath)
+	err = website.Build()
+	if err != nil {
+		logger.Error(err.Error())
+		http.Error(w, "unable to rebuild website", http.StatusBadRequest)
+		return
+	}
 	if config.DisableGitCommitForDevelopment == false {
 		err = website.CommitAndPush("Added or updated page on " + website.ID)
 		if err != nil {
@@ -71,14 +77,8 @@ func WebMentionIOHookHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "unable to commit changes to git", http.StatusBadRequest)
 			return
 		}
-		err = website.Build()
-		if err != nil {
-			logger.Error(err.Error())
-			http.Error(w, "unable to rebuild website", http.StatusBadRequest)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
 	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {

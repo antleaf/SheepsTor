@@ -106,6 +106,12 @@ func MicroPubPostHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Debugf("Wrote page to file at %s", page.FilePath)
 			page.MoveMediaFromTempUploadToLocalFolderAndRewriteLinks(website.IndieWeb.MediaUploadURLRegex, website.IndieWeb.MediaUploadPath, filepath.Dir(filepath.Join(website.ContentRoot, page.FilePath)))
 			err = website.SavePage(page, filePath)
+			err = website.Build()
+			if err != nil {
+				logger.Error(err.Error())
+				http.Error(w, "unable to rebuild website", http.StatusBadRequest)
+				return
+			}
 			w.Header().Set("Location", page.Permalink)
 			if config.DisableGitCommitForDevelopment == false {
 				err = website.CommitAndPush("Added or updated page on " + website.ID)
@@ -114,17 +120,11 @@ func MicroPubPostHandler(w http.ResponseWriter, r *http.Request) {
 					http.Error(w, "unable to commit changes to git", http.StatusBadRequest)
 					return
 				}
-				err = website.Build()
-				if err != nil {
-					logger.Error(err.Error())
-					http.Error(w, "unable to rebuild website", http.StatusBadRequest)
-					return
-				}
-				if pageIsNew {
-					w.WriteHeader(http.StatusCreated)
-				} else {
-					w.WriteHeader(http.StatusOK)
-				}
+			}
+			if pageIsNew {
+				w.WriteHeader(http.StatusCreated)
+			} else {
+				w.WriteHeader(http.StatusOK)
 			}
 		}
 	}

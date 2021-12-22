@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"os"
+	"strings"
 )
 
 var logger *zap.SugaredLogger
@@ -45,29 +46,26 @@ func main() {
 
 func Scratch() {
 	w := registry.getWebsiteByID("www.paulwalk.net")
-	permalink := "https://www.paulwalk.net/2003/broadband-britain/"
-	pp := w.PathProcessorSet.SelectPathProcessorForPermalink(permalink)
-	logger.Infof("PP = %s", pp.Name)
-	logger.Infof("Path = %s", w.GetPagePathForPermalink(permalink))
-	//logger.Debugf("path = %s", w.GetPagePathForPermalink(permalink))
-	//filePath := "posts/2003/broadband-britain/index.md"
-	//filePath = "posts/2015/the-active-repository-pattern/index.md"
-	//p, err := w.LoadPage(filePath)
-	//if err != nil {
-	//	logger.Error(err.Error())
+	//path := "posts/2008/why-i-suppose-i-ought-to-become-a-daily-mail-reader/index.md"
+	//page, _ := w.LoadPage(path)
+	//logger.Debugf("title: %s", page.Title)
+	//for _, wm := range page.WebMentions.WebMentions {
+	//	logger.Debugf("%s, %s, %s", wm.Status, wm.Source, wm.Target)
 	//}
-	//logger.Infof("Title of page = %s", p.Title)
-	////logger.Infof("Webmention Count = %v", p.WebMentions.Count())
-	//paths, _ := w.GetAllPageFilePaths()
-	//for _, path := range paths {
-	//	page, pageLoadErr := w.LoadPage(path)
-	//	if pageLoadErr != nil {
-	//		logger.Error(pageLoadErr.Error())
-	//	}
-	//	if page.WebMentions.Count() == 0 {
-	//		logger.Infof("This page has %v webmentions: %s", page.WebMentions.Count(), page.FilePath)
-	//	}
-	//}
+
+	paths, _ := w.GetAllPageFilePaths()
+	for _, path := range paths {
+		if strings.HasPrefix(path, "posts") {
+			page, _ := w.LoadPage(path)
+			//for _, wm := range page.WebMentions.WebMentions {
+			//	if wm.Status == WMStatusPending {
+			//		logger.Debug(wm.Source)
+			//	}
+			//}
+			w.SavePage(page, page.FilePath)
+		}
+	}
+
 	//w.DumpSiteMap( os.Stdout)
 	os.Exit(1)
 }
