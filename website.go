@@ -1,4 +1,4 @@
-package sheepstor
+package SheepsTor_git
 
 import (
 	"os"

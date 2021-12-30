@@ -1,4 +1,4 @@
-package sheepstor
+package SheepsTor_git
 
 import (
 	"github.com/google/go-github/v40/github"
