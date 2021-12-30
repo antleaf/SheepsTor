@@ -1,4 +1,4 @@
-package SheepsTor_git
+package sheepstor
 
 import (
 	"fmt"

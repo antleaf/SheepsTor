@@ -1,4 +1,4 @@
-package SheepsTor_git
+package sheepstor
 
 type WebsiteRegistry struct {
 	WebSites []*WebsiteInterface
