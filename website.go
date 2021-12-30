@@ -5,13 +5,20 @@ import (
 	"path/filepath"
 )
 
+type WebsiteInterface interface {
+	Build() error
+	ProvisionSources() error
+	CommitAndPush(message string)
+	HasID(id string) bool
+	HasRepoNameAndBranchRef(repoName, branchRef string) bool
+}
+
 type Website struct {
 	ID               string
 	ContentProcessor string //either 'hugo' or nil
 	ProcessorRoot    string
-	//ContentRoot      string
-	WebRoot string
-	GitRepo GitRepo
+	WebRoot          string
+	GitRepo          GitRepo
 }
 
 func NewWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCloneID, repoName, repoBranchName string) Website {
@@ -26,13 +33,6 @@ func NewWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCl
 	} else {
 		w.ProcessorRoot = w.GitRepo.RepoLocalPath
 	}
-	//if contentRoot != "" {
-	//	w.ContentRoot = filepath.Join(w.ProcessorRoot, contentRoot)
-	//} else if w.ContentProcessor == "hugo" {
-	//	w.ContentRoot = filepath.Join(w.ProcessorRoot, "content")
-	//} else {
-	//	w.ContentRoot = w.ProcessorRoot
-	//}
 	return w
 }
 
@@ -123,17 +123,25 @@ func (w *Website) CommitAndPush(message string) error {
 	return err
 }
 
-func (w *Website) ProcessWebsite() error {
-	err := w.ProvisionSources()
-	if err != nil {
-		//logger.Error(err.Error())
-		return err
-	} else {
-		err = w.Build()
-		if err != nil {
-			return err
-			//logger.Error(err.Error())
-		}
-	}
-	return err
+func (w *Website) HasID(id string) bool {
+	return w.ID == id
 }
+
+func (w *Website) HasRepoNameAndBranchRef(repoName, branchRef string) bool {
+	return w.GitRepo.RepoName == repoName && w.GitRepo.BranchRef == branchRef
+}
+
+//func (w *Website) ProcessWebsite() error {
+//	err := w.ProvisionSources()
+//	if err != nil {
+//		//logger.Error(err.Error())
+//		return err
+//	} else {
+//		err = w.Build()
+//		if err != nil {
+//			return err
+//			//logger.Error(err.Error())
+//		}
+//	}
+//	return err
+//}
