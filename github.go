@@ -27,12 +27,14 @@ func GitHubWebHookHandler(w http.ResponseWriter, req *http.Request) {
 		case *github.PushEvent:
 			websitePtr := Registry.GetWebsiteByRepoNameAndBranchRef(e.GetRepo().GetFullName(), e.GetRef())
 			if websitePtr != nil {
-				localCommitID := websitePtr.GitRepo.GetHeadCommitID()
+				website := *websitePtr
+				gitRepo := website.GetGitRepo()
+				localCommitID := gitRepo.GetHeadCommitID()
 				//main.logger.Debugf("Local commit ID = %s", localCommitID)
 				pushCommitID := *e.HeadCommit.ID
 				//main.logger.Debugf("Head commit ID from push event = %v", pushCommitID)
 				if localCommitID != pushCommitID {
-					err = websitePtr.ProcessWebsite()
+					err = website.Build()
 					if err != nil {
 						//main.logger.Error(err.Error())
 						http.Error(w, err.Error(), http.StatusBadRequest)

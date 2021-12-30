@@ -11,8 +11,8 @@ func InitialiseRegistry(sourceRoot, webRoot string) {
 	Registry.WebSites = make([]*WebsiteInterface, 0)
 }
 
-func (r *WebsiteRegistry) Add(w WebsiteInterface) {
-	r.WebSites = append(r.WebSites, &w)
+func (r *WebsiteRegistry) Add(w *WebsiteInterface) {
+	r.WebSites = append(r.WebSites, w)
 }
 
 func (r *WebsiteRegistry) GetWebsiteByRepoNameAndBranchRef(repoName, branchRef string) *WebsiteInterface {

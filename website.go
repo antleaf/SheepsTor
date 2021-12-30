@@ -11,6 +11,8 @@ type WebsiteInterface interface {
 	CommitAndPush(message string)
 	HasID(id string) bool
 	HasRepoNameAndBranchRef(repoName, branchRef string) bool
+	GetGitRepo() GitRepo
+	GetID() string
 }
 
 type Website struct {
@@ -129,6 +131,14 @@ func (w *Website) HasID(id string) bool {
 
 func (w *Website) HasRepoNameAndBranchRef(repoName, branchRef string) bool {
 	return w.GitRepo.RepoName == repoName && w.GitRepo.BranchRef == branchRef
+}
+
+func (w *Website) GetID() string {
+	return w.ID
+}
+
+func (w *Website) GetGitRepo() GitRepo {
+	return w.GitRepo
 }
 
 //func (w *Website) ProcessWebsite() error {
