@@ -1,4 +1,4 @@
-module SheepsTor
+module github.com/antleaf/sheepstor
 
 go 1.16
 
