@@ -9,12 +9,12 @@ type Website struct {
 	ID               string
 	ContentProcessor string //either 'hugo' or nil
 	ProcessorRoot    string
-	ContentRoot      string
-	WebRoot          string
-	GitRepo          GitRepo
+	//ContentRoot      string
+	WebRoot string
+	GitRepo GitRepo
 }
 
-func NewWebsite(id, contentProcessor, processorRoot, contentRoot, sourceRoot, webRoot, repoCloneID, repoName, repoBranchName string) Website {
+func NewWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCloneID, repoName, repoBranchName string) Website {
 	var w = Website{
 		ID:               id,
 		ContentProcessor: contentProcessor,
@@ -26,13 +26,13 @@ func NewWebsite(id, contentProcessor, processorRoot, contentRoot, sourceRoot, we
 	} else {
 		w.ProcessorRoot = w.GitRepo.RepoLocalPath
 	}
-	if contentRoot != "" {
-		w.ContentRoot = filepath.Join(w.ProcessorRoot, contentRoot)
-	} else if w.ContentProcessor == "hugo" {
-		w.ContentRoot = filepath.Join(w.ProcessorRoot, "content")
-	} else {
-		w.ContentRoot = w.ProcessorRoot
-	}
+	//if contentRoot != "" {
+	//	w.ContentRoot = filepath.Join(w.ProcessorRoot, contentRoot)
+	//} else if w.ContentProcessor == "hugo" {
+	//	w.ContentRoot = filepath.Join(w.ProcessorRoot, "content")
+	//} else {
+	//	w.ContentRoot = w.ProcessorRoot
+	//}
 	return w
 }
 
