@@ -6,10 +6,10 @@ import (
 )
 
 func ConfigureZapSugarLogger(debugging bool) (*zap.SugaredLogger, error) {
-	var logger *zap.Logger
+	var zapLogger *zap.Logger
 	var err error
-	logger, err = ConfigureZapLogger(debugging)
-	return logger.Sugar(), err
+	zapLogger, err = ConfigureZapLogger(debugging)
+	return zapLogger.Sugar(), err
 }
 
 func ConfigureZapLogger(debugging bool) (*zap.Logger, error) {

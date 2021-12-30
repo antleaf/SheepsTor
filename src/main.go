@@ -1,23 +1,22 @@
 package main
 
 import (
+	"SheepsTor/src/sheepstor"
 	"flag"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 	"net/http"
 	"os"
-	"strings"
+	"sync"
 )
 
 var logger *zap.SugaredLogger
 var config = Configuration{}
-var registry WebsiteRegistry
-var systemReadyToAcceptUpdateRequests bool
 var router chi.Router
 
 func main() {
-	systemReadyToAcceptUpdateRequests = false
 	debugPtr := flag.Bool("debug", false, "-debug true|false")
 	configFilePathPtr := flag.String("config", "./config/config.yaml", "-config <file_path>")
 	updatePtr := flag.String("update", "", "-update all|<some_id>")
@@ -32,10 +31,23 @@ func main() {
 	if config.DebugLogging {
 		logger.Infof("Debugging enabled")
 	}
+	sheepstor.GitHubWebHookSecret = os.Getenv(config.GitHubWebHookSecretEnvKey)
+	sheepstor.InitialiseRegistry(config.SourceRoot, config.WebRoot)
+	for _, w := range config.WebsiteConfigs {
+		website := sheepstor.NewWebsite(
+			w.ID, w.ContentProcessor,
+			w.ProcessorRootSubFolderPath,
+			w.ContentRootSubFolderPath,
+			config.SourceRoot,
+			config.WebRoot,
+			w.GitRepoConfig.CloneId,
+			w.GitRepoConfig.RepoName,
+			w.GitRepoConfig.BranchName,
+		)
+		sheepstor.Registry.Add(website)
+	}
 	logger.Infof("WebRoot folder path set to: %s", config.WebRoot)
 	logger.Infof("Source Root folder path set to: %s", config.SourceRoot)
-	registry = NewRegistry(config.WebsiteConfigs, config.SourceRoot, config.WebRoot)
-	router = ConfigureRouter()
 	//Scratch()
 	if *updatePtr != "" {
 		runAsCLIProcess(*updatePtr)
@@ -45,44 +57,62 @@ func main() {
 }
 
 func Scratch() {
-	w := registry.getWebsiteByID("www.paulwalk.net")
-	//path := "posts/2008/why-i-suppose-i-ought-to-become-a-daily-mail-reader/index.md"
-	//page, _ := w.LoadPage(path)
-	//logger.Debugf("title: %s", page.Title)
-	//for _, wm := range page.WebMentions.WebMentions {
-	//	logger.Debugf("%s, %s, %s", wm.Status, wm.Source, wm.Target)
-	//}
-
-	paths, _ := w.GetAllPageFilePaths()
-	for _, path := range paths {
-		if strings.HasPrefix(path, "posts") {
-			page, _ := w.LoadPage(path)
-			//for _, wm := range page.WebMentions.WebMentions {
-			//	if wm.Status == WMStatusPending {
-			//		logger.Debug(wm.Source)
-			//	}
-			//}
-			w.SavePage(page, page.FilePath)
-		}
+	w := sheepstor.Registry.GetWebsiteByID("www.paulwalk.net")
+	if w != nil {
+		logger.Debugf("website ID = %s", w.ID)
+	} else {
+		logger.Debug("not found")
 	}
 
-	//w.DumpSiteMap( os.Stdout)
 	os.Exit(1)
 }
 
 func runAsCLIProcess(sitesToUpdate string) {
 	logger.Info(fmt.Sprintf("Running as CLI Process, updating website(s): '%s'...", sitesToUpdate))
 	if sitesToUpdate == "all" {
-		ProcessAllWebsites()
+		processAllWebsites()
 	} else {
-		ProcessWebsite(registry.getWebsiteByID(sitesToUpdate))
+		sheepstor.Registry.GetWebsiteByID(sitesToUpdate).ProcessWebsite()
 	}
 }
 
 func runAsHTTPProcess() {
+	router = chi.NewRouter()
+	router.Use(middleware.Logger)
+	router.Use(middleware.StripSlashes)
+	router.Use(middleware.Throttle(10))
+	//TODO: figure out if it is possible to use this CORS module to add common HTTP headers to all HTTP Responses. Otherwise write a middleware handler to do this.
+	//r.Handle("/_resources/assets/*", http.FileServer(http.FS(embeddedAssets)))
+	router.Get("/", DefaultHandler)
+	//r.Post("/comment", CommentPostHandler)
+	router.Post("/update", sheepstor.GitHubWebHookHandler)
 	logger.Info(fmt.Sprintf("Running as HTTP Process on port %d", config.Port))
 	err := http.ListenAndServe(fmt.Sprintf(":%v", config.Port), router)
 	if err != nil {
 		logger.Error(err.Error())
 	}
+}
+
+func processWebsiteInSynchronousWorker(website *sheepstor.Website, wg *sync.WaitGroup) {
+	err := website.ProcessWebsite()
+	if err != nil {
+		logger.Error(err.Error())
+	} else {
+		logger.Infof("Processed website: '%s'", website.ID)
+	}
+	wg.Done()
+}
+
+func processAllWebsites() {
+	var wg sync.WaitGroup
+	for _, website := range sheepstor.Registry.WebSites {
+		wg.Add(1)
+		go processWebsiteInSynchronousWorker(website, &wg)
+	}
+	wg.Wait()
+}
+
+func DefaultHandler(resp http.ResponseWriter, req *http.Request) {
+	resp.Write([]byte("Hello world"))
+	resp.WriteHeader(http.StatusOK)
 }
