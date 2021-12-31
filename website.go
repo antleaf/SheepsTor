@@ -8,7 +8,7 @@ import (
 type WebsiteInterface interface {
 	Build() error
 	ProvisionSources() error
-	CommitAndPush(message string)
+	CommitAndPush(message string) error
 	HasID(id string) bool
 	HasRepoNameAndBranchRef(repoName, branchRef string) bool
 	GetGitRepo() GitRepo
