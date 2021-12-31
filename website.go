@@ -5,16 +5,6 @@ import (
 	"path/filepath"
 )
 
-type WebsiteInterface interface {
-	Build() error
-	ProvisionSources() error
-	CommitAndPush(message string) error
-	HasID(id string) bool
-	HasRepoNameAndBranchRef(repoName, branchRef string) bool
-	GetGitRepo() GitRepo
-	GetID() string
-}
-
 type Website struct {
 	ID               string
 	ContentProcessor string //either 'hugo' or nil
@@ -57,11 +47,6 @@ func (w *Website) Build() error {
 		return err
 	}
 	switch w.ContentProcessor {
-	case "sheepstor":
-		err = HugoProcessor(w.ProcessorRoot, targetFolderPathForBuild)
-		if err != nil {
-			return err
-		}
 	case "hugo":
 		err = HugoProcessor(w.ProcessorRoot, targetFolderPathForBuild)
 		if err != nil {
@@ -75,7 +60,7 @@ func (w *Website) Build() error {
 			return err
 		}
 	} else if os.IsNotExist(err) {
-		//logger.Debug(fmt.Sprintf("Symlink does not yet exist: '%s'", symbolicLinkPath))
+		//do nothing?
 	}
 	err = os.Symlink(targetFolderPathForBuild, symbolicLinkPath) //Only switch if successful
 	if err != nil {
@@ -88,26 +73,18 @@ func (w *Website) ProvisionSources() error {
 	var err error
 	gitFolderPath := filepath.Join(w.GitRepo.RepoLocalPath, ".git")
 	if _, err = os.Stat(gitFolderPath); os.IsNotExist(err) {
-		//logger.Debug(fmt.Sprintf("Git working copy folder does not exist: '%s', creating it now....", w.GitRepo.RepoLocalPath))
 		err = os.MkdirAll(w.GitRepo.RepoLocalPath, os.ModePerm)
 		if err != nil {
-			//main.logger.Error(err.Error())
 			return err
 		}
-		//logger.Info(fmt.Sprintf("Git working copy folder: '%s', created OK", w.GitRepo.RepoLocalPath))
 		err = w.GitRepo.Clone()
 		if err != nil {
-			//main.logger.Error(err.Error())
 			return err
-		} else {
-			//logger.Info(fmt.Sprintf("Cloned sources from '%s' into '%s' OK", w.GitRepo.CloneID, w.GitRepo.RepoLocalPath))
 		}
 	} else {
 		err = w.GitRepo.Pull()
 		if err != nil {
-			//logger.Error(err.Error())
-		} else {
-			//logger.Info(fmt.Sprintf("Sources for website '%s' pulled from '%s' OK", w.ID, w.GitRepo.CloneID))
+			return err
 		}
 	}
 	return err
@@ -140,18 +117,3 @@ func (w *Website) GetID() string {
 func (w *Website) GetGitRepo() GitRepo {
 	return w.GitRepo
 }
-
-//func (w *Website) ProcessWebsite() error {
-//	err := w.ProvisionSources()
-//	if err != nil {
-//		//logger.Error(err.Error())
-//		return err
-//	} else {
-//		err = w.Build()
-//		if err != nil {
-//			return err
-//			//logger.Error(err.Error())
-//		}
-//	}
-//	return err
-//}

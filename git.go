@@ -30,33 +30,19 @@ func NewGitRepo(cloneID, repoName, branchName, localPath string) GitRepo {
 	return g
 }
 
-//func NewGitRepo(gitConfig GitRepoConfig, localPath string) GitRepo {
-//	var g = GitRepo{
-//		CloneID:       gitConfig.CloneId,
-//		RepoName:      gitConfig.RepoName,
-//		BranchName:    gitConfig.BranchName,
-//		RepoLocalPath: localPath,
-//	}
-//	g.BranchRef = fmt.Sprintf("refs/heads/%s", g.BranchName)
-//	return g
-//}
-
 func (g *GitRepo) GetHeadCommitID() string {
 	var err error
 	var headCommitID string
 	repo, err := git.PlainOpen(g.RepoLocalPath)
 	if err != nil {
-		//main.logger.Error(err.Error())
 		return headCommitID
 	}
 	ref, err := repo.Head()
 	if err != nil {
-		//main.logger.Error(err.Error())
 		return headCommitID
 	}
 	commit, err := repo.CommitObject(ref.Hash())
 	if err != nil {
-		//main.logger.Error(err.Error())
 		return headCommitID
 	}
 	headCommitID = commit.ID().String()
@@ -105,10 +91,8 @@ func (g *GitRepo) Pull() error {
 		case "already up-to-date":
 			err = nil
 		//case "non-fast-forward update":
-		//	zapLogger.Info(fmt.Sprintf("Non-fast-forward update for '%s'", website.Id))
 		//	err = nil
 		default:
-			//zapLogger.Error(err.Error())
 			return err
 		}
 	}
@@ -119,36 +103,28 @@ func (g *GitRepo) CommitAndPush(message string) error {
 	var err error
 	repo, err := git.PlainOpenWithOptions(g.RepoLocalPath, &git.PlainOpenOptions{DetectDotGit: true, EnableDotGitCommonDir: true})
 	if err != nil {
-		//main.logger.Error(err.Error())
 		return err
 	}
 	w, err := repo.Worktree()
 	if err != nil {
-		//main.logger.Error(err.Error())
 		return err
 	}
 	err = w.AddWithOptions(&git.AddOptions{All: true})
 	if err != nil {
-		//main.logger.Error(err.Error())
 		return err
 	}
 	_, err = w.Commit(message, &git.CommitOptions{All: true})
 	if err != nil {
-		//main.logger.Error(err.Error())
 		return err
 	}
-	//main.logger.Infof("Committed changes to '%s' with commit hash: '%s'", g.RepoLocalPath, commitHash.String())
 	publicKey, err := getSshPublicKey()
 	if err != nil {
-		//main.logger.Error("SSH Key not returned")
 		return err
 	}
 	err = repo.Push(&git.PushOptions{RemoteName: "origin", Auth: publicKey, Progress: nil})
 	if err != nil {
-		//main.logger.Error(err.Error())
 		return err
 	}
-	//main.logger.Info("Pushed changes")
 	return err
 }
 
