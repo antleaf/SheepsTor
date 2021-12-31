@@ -1,15 +1,17 @@
 package sheepstor
 
 type WebsiteRegistry struct {
-	SourceRoot string
-	WebRoot    string
-	WebSites   []*WebsiteInterface
+	SourceRoot          string
+	WebRoot             string
+	GitHubWebHookSecret string
+	WebSites            []*WebsiteInterface
 }
 
-func NewRegistry(sourceRoot, webRoot string) WebsiteRegistry {
+func NewRegistry(sourceRoot, webRoot, gitHubWebHookSecret string) WebsiteRegistry {
 	registry := WebsiteRegistry{}
 	registry.SourceRoot = sourceRoot
 	registry.WebRoot = webRoot
+	registry.GitHubWebHookSecret = gitHubWebHookSecret
 	registry.WebSites = make([]*WebsiteInterface, 0)
 	return registry
 }

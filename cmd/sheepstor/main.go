@@ -33,8 +33,7 @@ func main() {
 		logger.Infof("Debugging enabled")
 	}
 	sheepstor.SetLogger(logger)
-	sheepstor.GitHubWebHookSecret = os.Getenv(config.GitHubWebHookSecretEnvKey)
-	registry = sheepstor.NewRegistry(config.SourceRoot, config.WebRoot)
+	registry = sheepstor.NewRegistry(config.SourceRoot, config.WebRoot, os.Getenv(config.GitHubWebHookSecretEnvKey))
 	for _, w := range config.WebsiteConfigs {
 		website := sheepstor.NewWebsite(
 			w.ID, w.ContentProcessor,
@@ -84,7 +83,7 @@ func runAsHTTPProcess() {
 	//TODO: figure out if it is possible to use this CORS module to add common HTTP headers to all HTTP Responses. Otherwise write a middleware handler to do this.
 	router.Get("/", DefaultHandler)
 	router.Post("/update", registry.GitHubWebHookHandler)
-	logger.Info(fmt.Sprintf("Running as HTTP Process on port %d", config.Port))
+	logger.Infof("Running as HTTP Process on port %d", config.Port)
 	err := http.ListenAndServe(fmt.Sprintf(":%v", config.Port), router)
 	if err != nil {
 		logger.Error(err.Error())

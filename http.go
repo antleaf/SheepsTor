@@ -5,12 +5,10 @@ import (
 	"net/http"
 )
 
-var GitHubWebHookSecret string
-
 func (r *WebsiteRegistry) GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
 	logger.Debug("Handling GitHUb webhook post....")
 	if req.Method == http.MethodPost {
-		payload, err := github.ValidatePayload(req, []byte(GitHubWebHookSecret))
+		payload, err := github.ValidatePayload(req, []byte(r.GitHubWebHookSecret))
 		if err != nil {
 			logger.Error(err.Error())
 			http.Error(resp, err.Error(), http.StatusBadRequest)
