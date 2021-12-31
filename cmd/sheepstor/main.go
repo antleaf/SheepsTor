@@ -13,15 +13,16 @@ import (
 )
 
 var logger *zap.SugaredLogger
-var config = Configuration{}
+var config = sheepstor.Configuration{}
 var router chi.Router
+var registry sheepstor.WebsiteRegistry
 
 func main() {
 	debugPtr := flag.Bool("debug", false, "-debug true|false")
 	configFilePathPtr := flag.String("config", "./config.yaml", "-config <file_path>")
 	updatePtr := flag.String("update", "", "-update all|<some_id>")
 	flag.Parse()
-	err := (&config).initialise(*debugPtr, *configFilePathPtr)
+	err := (&config).Initialise(*debugPtr, *configFilePathPtr)
 	if err != nil {
 		fmt.Print(err.Error() + "\n")
 		fmt.Printf("Halting execution because SheepsTorConfig file not loaded from %s\n", *configFilePathPtr)
@@ -31,8 +32,9 @@ func main() {
 	if config.DebugLogging {
 		logger.Infof("Debugging enabled")
 	}
+	sheepstor.SetLogger(logger)
 	sheepstor.GitHubWebHookSecret = os.Getenv(config.GitHubWebHookSecretEnvKey)
-	sheepstor.InitialiseRegistry(config.SourceRoot, config.WebRoot)
+	registry = sheepstor.NewRegistry(config.SourceRoot, config.WebRoot)
 	for _, w := range config.WebsiteConfigs {
 		website := sheepstor.NewWebsite(
 			w.ID, w.ContentProcessor,
@@ -45,7 +47,7 @@ func main() {
 		)
 		var websiteInterface sheepstor.WebsiteInterface
 		websiteInterface = &website
-		sheepstor.Registry.Add(&websiteInterface)
+		registry.Add(&websiteInterface)
 	}
 	logger.Infof("WebRoot folder path set to: %s", config.WebRoot)
 	logger.Infof("Source Root folder path set to: %s", config.SourceRoot)
@@ -61,7 +63,7 @@ func runAsCLIProcess(sitesToUpdate string) {
 	if sitesToUpdate == "all" {
 		processAllWebsites()
 	} else {
-		website := *sheepstor.Registry.GetWebsiteByID(sitesToUpdate)
+		website := *registry.GetWebsiteByID(sitesToUpdate)
 		err := website.ProvisionSources()
 		if err != nil {
 			logger.Error(err.Error())
@@ -81,7 +83,7 @@ func runAsHTTPProcess() {
 	router.Use(middleware.Throttle(10))
 	//TODO: figure out if it is possible to use this CORS module to add common HTTP headers to all HTTP Responses. Otherwise write a middleware handler to do this.
 	router.Get("/", DefaultHandler)
-	router.Post("/update", sheepstor.GitHubWebHookHandler)
+	router.Post("/update", registry.GitHubWebHookHandler)
 	logger.Info(fmt.Sprintf("Running as HTTP Process on port %d", config.Port))
 	err := http.ListenAndServe(fmt.Sprintf(":%v", config.Port), router)
 	if err != nil {
@@ -108,7 +110,7 @@ func processWebsiteInSynchronousWorker(websitePtr *sheepstor.WebsiteInterface, w
 
 func processAllWebsites() {
 	var wg sync.WaitGroup
-	for _, website := range sheepstor.Registry.WebSites {
+	for _, website := range registry.WebSites {
 		wg.Add(1)
 		go processWebsiteInSynchronousWorker(website, &wg)
 	}

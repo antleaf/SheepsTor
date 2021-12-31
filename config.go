@@ -29,7 +29,7 @@ type WebsiteConfig struct {
 	GitRepoConfig              GitRepoConfig `yaml:"git"`
 }
 
-func (config *Configuration) initialise(debugLogging bool, configFilePath string) error {
+func (config *Configuration) Initialise(debugLogging bool, configFilePath string) error {
 	config.DebugLogging = debugLogging
 	configData, err := ioutil.ReadFile(configFilePath)
 	if err != nil {

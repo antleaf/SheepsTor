@@ -1,14 +1,17 @@
 package sheepstor
 
 type WebsiteRegistry struct {
-	WebSites []*WebsiteInterface
+	SourceRoot string
+	WebRoot    string
+	WebSites   []*WebsiteInterface
 }
 
-var Registry WebsiteRegistry
-
-func InitialiseRegistry(sourceRoot, webRoot string) {
-	Registry = WebsiteRegistry{}
-	Registry.WebSites = make([]*WebsiteInterface, 0)
+func NewRegistry(sourceRoot, webRoot string) WebsiteRegistry {
+	registry := WebsiteRegistry{}
+	registry.SourceRoot = sourceRoot
+	registry.WebRoot = webRoot
+	registry.WebSites = make([]*WebsiteInterface, 0)
+	return registry
 }
 
 func (r *WebsiteRegistry) Add(w *WebsiteInterface) {
