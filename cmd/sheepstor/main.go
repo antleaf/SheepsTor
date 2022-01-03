@@ -13,7 +13,7 @@ import (
 )
 
 var logger *zap.SugaredLogger
-var config = sheepstor.Configuration{}
+var config = Configuration{}
 var router chi.Router
 var registry sheepstor.WebsiteRegistry
 
