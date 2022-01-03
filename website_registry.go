@@ -9,7 +9,7 @@ type WebsiteRegistry struct {
 	SourceRoot          string
 	WebRoot             string
 	GitHubWebHookSecret string
-	WebSites            []*WebsiteInterface
+	WebSites            []*Website
 }
 
 func NewRegistry(sourceRoot, webRoot, gitHubWebHookSecret string) WebsiteRegistry {
@@ -17,29 +17,27 @@ func NewRegistry(sourceRoot, webRoot, gitHubWebHookSecret string) WebsiteRegistr
 	registry.SourceRoot = sourceRoot
 	registry.WebRoot = webRoot
 	registry.GitHubWebHookSecret = gitHubWebHookSecret
-	registry.WebSites = make([]*WebsiteInterface, 0)
+	registry.WebSites = make([]*Website, 0)
 	return registry
 }
 
-func (r *WebsiteRegistry) Add(w *WebsiteInterface) {
+func (r *WebsiteRegistry) Add(w *Website) {
 	r.WebSites = append(r.WebSites, w)
 }
 
-func (r *WebsiteRegistry) GetWebsiteByRepoNameAndBranchRef(repoName, branchRef string) *WebsiteInterface {
-	for _, wptr := range r.WebSites {
-		w := *wptr
-		if w.HasRepoNameAndBranchRef(repoName, branchRef) {
-			return wptr
+func (r *WebsiteRegistry) GetWebsiteByRepoNameAndBranchRef(repoName, branchRef string) *Website {
+	for _, w := range r.WebSites {
+		if w.GitRepo.RepoName == repoName && w.GitRepo.BranchRef == branchRef {
+			return w
 		}
 	}
 	return nil
 }
 
-func (r *WebsiteRegistry) GetWebsiteByID(id string) *WebsiteInterface {
-	for _, wptr := range r.WebSites {
-		w := *wptr
-		if w.HasID(id) {
-			return wptr
+func (r *WebsiteRegistry) GetWebsiteByID(id string) *Website {
+	for _, w := range r.WebSites {
+		if w.ID == id {
+			return w
 		}
 	}
 	return nil
@@ -67,12 +65,12 @@ func (r *WebsiteRegistry) GitHubWebHookHandler(resp http.ResponseWriter, req *ht
 			websitePtr := r.GetWebsiteByRepoNameAndBranchRef(e.GetRepo().GetFullName(), e.GetRef())
 			if websitePtr != nil {
 				website := *websitePtr
-				logger.Debugf("Website identified from GitHub push event; '%s'", website.GetID())
-				gitRepo := website.GetGitRepo()
+				logger.Debugf("Website identified from GitHub push event; '%s'", website.ID)
+				gitRepo := website.GitRepo
 				localCommitID := gitRepo.GetHeadCommitID()
 				pushCommitID := *e.HeadCommit.ID
 				if localCommitID != pushCommitID {
-					logger.Debugf("Attempting to build website '%s'", website.GetID())
+					logger.Debugf("Attempting to build website '%s'", website.ID)
 					err = website.ProvisionSources()
 					if err != nil {
 						logger.Error(err.Error())
@@ -85,7 +83,7 @@ func (r *WebsiteRegistry) GitHubWebHookHandler(resp http.ResponseWriter, req *ht
 						http.Error(resp, err.Error(), http.StatusBadRequest)
 						return
 					} else {
-						logger.Infof("Built website '%s'", website.GetID())
+						logger.Infof("Built website '%s'", website.ID)
 					}
 				}
 			} else {

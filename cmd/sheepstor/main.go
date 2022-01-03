@@ -44,9 +44,7 @@ func main() {
 			w.GitRepoConfig.RepoName,
 			w.GitRepoConfig.BranchName,
 		)
-		var websiteInterface sheepstor.WebsiteInterface
-		websiteInterface = &website
-		registry.Add(&websiteInterface)
+		registry.Add(&website)
 	}
 	logger.Infof("WebRoot folder path set to: %s", config.WebRoot)
 	logger.Infof("Source Root folder path set to: %s", config.SourceRoot)
@@ -90,18 +88,18 @@ func runAsHTTPProcess() {
 	}
 }
 
-func processWebsiteInSynchronousWorker(websitePtr *sheepstor.WebsiteInterface, wg *sync.WaitGroup) {
+func processWebsiteInSynchronousWorker(websitePtr *sheepstor.Website, wg *sync.WaitGroup) {
 	website := *websitePtr
 	err := website.ProvisionSources()
 	if err != nil {
 		logger.Error(err.Error())
 	} else {
-		logger.Infof("Provisioned sources for website: '%s'", website.GetID())
+		logger.Infof("Provisioned sources for website: '%s'", website.ID)
 		err = website.Build()
 		if err != nil {
 			logger.Error(err.Error())
 		} else {
-			logger.Infof("Built website: '%s'", website.GetID())
+			logger.Infof("Built website: '%s'", website.ID)
 		}
 	}
 	wg.Done()

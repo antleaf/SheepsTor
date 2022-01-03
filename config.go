@@ -25,7 +25,6 @@ type WebsiteConfig struct {
 	Enabled                    bool          `yaml:"enabled"`
 	ContentProcessor           string        `yaml:"content_processor"` //either 'hugo' or nil
 	ProcessorRootSubFolderPath string        `yaml:"processor_root"`    //e.g. a sub-folder in the repo called 'webroot'
-	ContentRootSubFolderPath   string        `yaml:"content_root"`      //for hugo this is 'content' by default
 	GitRepoConfig              GitRepoConfig `yaml:"git"`
 }
 
