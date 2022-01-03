@@ -1,7 +1,6 @@
 package sheepstor
 
 import (
-	"os"
 	"path/filepath"
 )
 
@@ -29,77 +28,15 @@ func NewWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCl
 }
 
 func (w *Website) Build() error {
-	var err error
-	targetFolderPathForBuild := filepath.Join(w.WebRoot, "public_1")
-	symbolicLinkPath := filepath.Join(w.WebRoot, "public")
-	currentSymLinkTargetPath, readlinkErr := os.Readlink(symbolicLinkPath)
-	if readlinkErr == nil {
-		if currentSymLinkTargetPath == filepath.Join(w.WebRoot, "public_1") {
-			targetFolderPathForBuild = filepath.Join(w.WebRoot, "public_2")
-		}
-	}
-	if _, statErr := os.Stat(targetFolderPathForBuild); statErr == nil {
-		os.RemoveAll(targetFolderPathForBuild)
-	}
-	err = os.MkdirAll(w.WebRoot, os.ModePerm)
-	err = os.MkdirAll(filepath.Join(w.WebRoot, "logs"), os.ModePerm)
-	if err != nil {
-		return err
-	}
-	switch w.ContentProcessor {
-	case "hugo":
-		err = HugoProcessor(w.ProcessorRoot, targetFolderPathForBuild)
-		if err != nil {
-			return err
-		}
-	default:
-		DefaultProcessor(w.ProcessorRoot, targetFolderPathForBuild)
-	}
-	if _, err = os.Lstat(symbolicLinkPath); err == nil {
-		if err = os.Remove(symbolicLinkPath); err != nil {
-			return err
-		}
-	} else if os.IsNotExist(err) {
-		//do nothing?
-	}
-	err = os.Symlink(targetFolderPathForBuild, symbolicLinkPath) //Only switch if successful
-	if err != nil {
-		return err
-	}
-	return err
+	return Build(w)
 }
 
 func (w *Website) ProvisionSources() error {
-	var err error
-	gitFolderPath := filepath.Join(w.GitRepo.RepoLocalPath, ".git")
-	if _, err = os.Stat(gitFolderPath); os.IsNotExist(err) {
-		err = os.MkdirAll(w.GitRepo.RepoLocalPath, os.ModePerm)
-		if err != nil {
-			return err
-		}
-		err = w.GitRepo.Clone()
-		if err != nil {
-			return err
-		}
-	} else {
-		err = w.GitRepo.Pull()
-		if err != nil {
-			return err
-		}
-	}
-	return err
+	return ProvisionSources(w)
 }
 
 func (w *Website) CommitAndPush(message string) error {
-	err := w.GitRepo.Pull()
-	if err != nil {
-		return err
-	}
-	err = w.GitRepo.CommitAndPush(message)
-	if err != nil {
-		return err
-	}
-	return err
+	return CommitAndPush(w, message)
 }
 
 func (w *Website) HasID(id string) bool {
@@ -116,4 +53,16 @@ func (w *Website) GetID() string {
 
 func (w *Website) GetGitRepo() GitRepo {
 	return w.GitRepo
+}
+
+func (w *Website) GetWebRoot() string {
+	return w.WebRoot
+}
+
+func (w *Website) GetContentProcessor() string {
+	return w.ContentProcessor
+}
+
+func (w *Website) GetProcessorRoot() string {
+	return w.ProcessorRoot
 }

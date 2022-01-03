@@ -8,4 +8,7 @@ type WebsiteInterface interface {
 	HasRepoNameAndBranchRef(repoName, branchRef string) bool
 	GetGitRepo() GitRepo
 	GetID() string
+	GetWebRoot() string
+	GetProcessorRoot() string
+	GetContentProcessor() string
 }
