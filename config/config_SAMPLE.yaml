@@ -4,7 +4,6 @@ webroot: #full path to folder to contain built websites
 github_webhook_secret_env_key: #name of aN ENV variable containing a secret to be used by Github webhook
 websites:
   - id: "www.example.com"
-    enabled: # true or false
     processor_root: #folder within Git repo which website processor (e.g. Hugo) should consider root directory
     content_processor: #e.g. 'hugo' or '' for default processor (which simply copies sources to output folder verbatim)
     git:

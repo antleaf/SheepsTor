@@ -22,7 +22,6 @@ type GitRepoConfig struct {
 
 type WebsiteConfig struct {
 	ID                         string        `yaml:"id"`
-	Enabled                    bool          `yaml:"enabled"`
 	ContentProcessor           string        `yaml:"content_processor"` //either 'hugo' or nil
 	ProcessorRootSubFolderPath string        `yaml:"processor_root"`    //e.g. a sub-folder in the repo called 'webroot'
 	GitRepoConfig              GitRepoConfig `yaml:"git"`
