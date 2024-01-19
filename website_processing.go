@@ -24,3 +24,14 @@ func HugoProcessor(sourcesPath, targetFolderPathForBuild string) error {
 func DefaultProcessor(sourcesPath, targetFolderPathForBuild string) {
 	CopyDir(sourcesPath, targetFolderPathForBuild)
 }
+
+func IndexForSearch(targetFolderPathForBuild string) error {
+	var err error
+	indexCmdString := fmt.Sprintf("pagefind --site %s", targetFolderPathForBuild)
+	indexCmd := exec.Command("sh", "-c", indexCmdString)
+	_, err = indexCmd.Output()
+	if err != nil {
+		return err
+	}
+	return err
+}

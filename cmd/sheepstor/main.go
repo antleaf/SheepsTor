@@ -43,6 +43,7 @@ func main() {
 			w.GitRepoConfig.CloneId,
 			w.GitRepoConfig.RepoName,
 			w.GitRepoConfig.BranchName,
+			w.IndexForSearch,
 		)
 		registry.Add(&website)
 	}

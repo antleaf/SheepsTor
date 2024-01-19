@@ -10,13 +10,15 @@ type Website struct {
 	ContentProcessor string //either 'hugo' or nil
 	ProcessorRoot    string
 	WebRoot          string
+	IndexForSearch   bool
 	GitRepo          GitRepo
 }
 
-func NewWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCloneID, repoName, repoBranchName string) Website {
+func NewWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCloneID, repoName, repoBranchName string, indexForSearch bool) Website {
 	var w = Website{
 		ID:               id,
 		ContentProcessor: contentProcessor,
+		IndexForSearch:   indexForSearch,
 	}
 	w.WebRoot = filepath.Join(webRoot, w.ID)
 	w.GitRepo = NewGitRepo(repoCloneID, repoName, repoBranchName, filepath.Join(sourceRoot, w.ID))
@@ -54,6 +56,12 @@ func (w *Website) Build() error {
 		}
 	default:
 		DefaultProcessor(w.ProcessorRoot, targetFolderPathForBuild)
+	}
+	if w.IndexForSearch {
+		err = IndexForSearch(targetFolderPathForBuild)
+		if err != nil {
+			return err
+		}
 	}
 	if _, err = os.Lstat(symbolicLinkPath); err == nil {
 		if err = os.Remove(symbolicLinkPath); err != nil {

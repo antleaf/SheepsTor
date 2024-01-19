@@ -24,6 +24,7 @@ type WebsiteConfig struct {
 	ID                         string        `yaml:"id"`
 	ContentProcessor           string        `yaml:"content_processor"` //either 'hugo' or nil
 	ProcessorRootSubFolderPath string        `yaml:"processor_root"`    //e.g. a sub-folder in the repo called 'webroot'
+	IndexForSearch             bool          `yaml:"index"`             //run the pagefind executable to create a search index
 	GitRepoConfig              GitRepoConfig `yaml:"git"`
 }
 
