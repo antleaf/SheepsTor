@@ -11,12 +11,12 @@ Sheepstor is configured from two places:
 ## Run as web service
 ### Using defaults
 ```bash
-./sheepstor
+./sheepstor server
 ```
 
 ### With debugging
 ```bash
-./sheepstor --debug=true
+./sheepstor server --debug=true
 ```
 
 

@@ -3,6 +3,7 @@ module github.com/antleaf/SheepsTor
 go 1.24
 
 require (
+	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-git/go-git/v5 v5.14.0
 	github.com/google/go-github/v40 v40.0.0
 	github.com/joho/godotenv v1.5.1
