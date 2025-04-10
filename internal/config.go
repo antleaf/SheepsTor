@@ -1,23 +1,23 @@
-package main
+package internal
 
 import (
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
+	"os"
 )
 
 type Configuration struct {
-	DebugLogging              bool
+	//LogLevel                  string          `yaml:"log_level"`
 	SourceRoot                string          `yaml:"source_root"`
-	WebRoot                   string          `yaml:"webroot"`
+	DocsRoot                  string          `yaml:"docs_root"`
 	Port                      int             `yaml:"port"`
 	GitHubWebHookSecretEnvKey string          `yaml:"github_webhook_secret_env_key"`
 	WebsiteConfigs            []WebsiteConfig `yaml:"websites"`
 }
 
 type GitRepoConfig struct {
-	CloneId    string `yaml:"clone_id"`
-	RepoName   string `yaml:"repo_name"`
-	BranchName string `yaml:"branch_name"`
+	CloneId  string `yaml:"clone_id"`
+	RepoName string `yaml:"repo_name"`
+	Branch   string `yaml:"branch"`
 }
 
 type WebsiteConfig struct {
@@ -28,9 +28,8 @@ type WebsiteConfig struct {
 	GitRepoConfig              GitRepoConfig `yaml:"git"`
 }
 
-func (config *Configuration) Initialise(debugLogging bool, configFilePath string) error {
-	config.DebugLogging = debugLogging
-	configData, err := ioutil.ReadFile(configFilePath)
+func (config *Configuration) Initialise(configFilePath string) error {
+	configData, err := os.ReadFile(configFilePath)
 	if err != nil {
 		return err
 	}

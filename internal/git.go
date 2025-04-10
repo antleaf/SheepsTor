@@ -1,4 +1,4 @@
-package sheepstor
+package internal
 
 import (
 	"fmt"
@@ -89,10 +89,10 @@ func (g *GitRepo) Pull() error {
 		switch err.Error() {
 		//TODO find better way to do this checking type of error rather than  checking error string
 		case "already up-to-date":
-			logger.Debugf("Already up-to-date for '%s'", g.RepoLocalPath)
+			Log.Debugf("Already up-to-date for '%s'", g.RepoLocalPath)
 			err = nil
 		case "non-fast-forward update":
-			logger.Debugf("Non-fast-forward update for '%s'", g.RepoLocalPath)
+			Log.Debugf("Non-fast-forward update for '%s'", g.RepoLocalPath)
 			err = nil
 		default:
 			return err

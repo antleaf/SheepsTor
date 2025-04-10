@@ -1,31 +1,38 @@
 # SheepsTor
 Utility for updating static websites (served via Hugo) from Github
 
+## Configuration
+Sheepstor is configured from two places:
+
+1. Some environment variables (see the `.env` file). These will need to ne set and exported in the runtime environment.
+2. The config file `./config/config.yaml`
+
+
 ## Run as web service
 ### Using defaults
 ```bash
 ./sheepstor
 ```
 
-### With configuration options
+### With debugging
 ```bash
-./sheepstor --debug=true --config=./config/config.yaml
+./sheepstor --debug=true
 ```
 
 
 ## Run as command line utility
 ### Using defaults - single website
 ```bash
-./sheepstor --update=www.antleaf.com
+./sheepstor update --sites=www.antleaf.com
 ```
 
 ### Using defaults - update all websites
 (also useful for InitContainer to set up web service)
 ```bash
-./sheepstor --update=all
+./sheepstor update --sites=all
 ```
 
-### With configuration options
+### With debugging
 ```bash
-./sheepstor --update=all --debug=true --config=./config/config.yaml
+./sheepstor update --sites=all --debug=true
 ```

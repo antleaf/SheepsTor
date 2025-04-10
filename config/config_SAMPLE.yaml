@@ -1,12 +1,14 @@
+coloured_output: true #coloured logging output
 port: #http port number for Webhook responder - e.g. 80
 source_root: #full path to folder to contain Git repository working directories
-webroot: #full path to folder to contain built websites
-github_webhook_secret_env_key: #name of aN ENV variable containing a secret to be used by Github webhook
+docs_root: #full path to folder to contain built websites
+github_webhook_secret_env_key: #name of an ENV variable containing a secret to be used by Github webhook
 websites:
   - id: "www.example.com"
     processor_root: #folder within Git repo which website processor (e.g. Hugo) should consider root directory
     content_processor: #e.g. 'hugo' or '' for default processor (which simply copies sources to output folder verbatim)
+    index: # true or false - will the static website use pagefind indexing for search?
     git:
       clone_id: #e.g. "git@github.com:<GITHUB_ID>/<REPOSITORY_NAME>"
       repo_name: #e.g. "<GITHUB_ID>/<REPOSITORY_NAME>"
-      branch_name: #e.g. "master"
+      branch: #e.g. "main"

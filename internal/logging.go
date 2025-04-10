@@ -1,9 +1,17 @@
-package main
+package internal
 
 import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+var Log *zap.SugaredLogger
+
+func InitialiseLog(debug bool) error {
+	var err error
+	Log, err = ConfigureZapSugarLogger(debug)
+	return err
+}
 
 func ConfigureZapSugarLogger(debugging bool) (*zap.SugaredLogger, error) {
 	var zapLogger *zap.Logger
@@ -25,10 +33,12 @@ func ConfigureZapLogger(debugging bool) (*zap.Logger, error) {
 		encoderConfig = zapcore.EncoderConfig{
 			MessageKey:   "message",
 			LevelKey:     "level",
-			TimeKey:      "",
+			TimeKey:      "timestamp",
+			EncodeTime:   zapcore.TimeEncoderOfLayout("Jan 02 15:04:05.000000000"),
 			EncodeLevel:  zapcore.CapitalColorLevelEncoder,
 			CallerKey:    "caller",
 			EncodeCaller: zapcore.ShortCallerEncoder,
+			//StacktraceKey: "stacktrace",
 		}
 	}
 	zapConfig := zap.Config{

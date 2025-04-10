@@ -1,4 +1,4 @@
-package sheepstor
+package internal
 
 import (
 	"os"
