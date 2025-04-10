@@ -2,3 +2,4 @@
 .idea/
 binaries/
 /config/config.yaml
+/.run/
