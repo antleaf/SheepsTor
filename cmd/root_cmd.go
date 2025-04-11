@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	. "github.com/antleaf/SheepsTor/internal"
 	"github.com/spf13/cobra"
 	"os"
 )
 
-var config = Configuration{}
 var Debug bool
 
 func init() {

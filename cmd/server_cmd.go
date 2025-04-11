@@ -21,8 +21,8 @@ var serverCmd = &cobra.Command{
 
 func runServer() {
 	InitialiseServer()
-	Log.Infof("Running as HTTP Process on port %d", config.Port)
-	err := http.ListenAndServe(fmt.Sprintf(":%v", config.Port), Router)
+	Log.Infof("Running as HTTP Process on port %d", Config.Port)
+	err := http.ListenAndServe(fmt.Sprintf(":%v", Config.Port), Router)
 	if err != nil {
 		Log.Error(err.Error())
 	}

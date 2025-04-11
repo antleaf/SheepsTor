@@ -28,14 +28,15 @@ type WebsiteConfig struct {
 	GitRepoConfig              GitRepoConfig `yaml:"git"`
 }
 
-func (config *Configuration) Initialise(configFilePath string) error {
+func NewConfiguration(configFilePath string) (Configuration, error) {
+	config := Configuration{}
 	configData, err := os.ReadFile(configFilePath)
 	if err != nil {
-		return err
+		return config, err
 	}
-	err = yaml.Unmarshal(configData, config)
+	err = yaml.Unmarshal(configData, &config)
 	if err != nil {
-		return err
+		return config, err
 	}
-	return err
+	return config, err
 }

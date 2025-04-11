@@ -6,10 +6,17 @@ import (
 	"go.uber.org/zap"
 )
 
+var Config = Configuration{}
 var Log *zap.SugaredLogger
 var Router chi.Router
 var Registry WebsiteRegistry
 var Renderer *render.Render
+
+func InitialiseConfiguration(configFilePath string) error {
+	config, err := NewConfiguration(configFilePath)
+	Config = config
+	return err
+}
 
 func InitialiseLogger(debug bool) error {
 	var err error
