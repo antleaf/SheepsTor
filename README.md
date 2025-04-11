@@ -4,7 +4,7 @@ Utility for updating static websites (served via Hugo) from Github
 ## Configuration
 Sheepstor is configured from two places:
 
-1. Some environment variables (see the `.env` file). These will need to ne set and exported in the runtime environment.
+1. Some environment variables (see the `.env` file). These will need to be set and exported in the runtime environment.
 2. The config file `./config/config.yaml`
 
 
