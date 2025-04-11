@@ -27,7 +27,7 @@ func updateWebsites(sites string) {
 	if sites == "all" {
 		processAllWebsites()
 	} else {
-		website := *registry.GetWebsiteByID(sites)
+		website := *Registry.GetWebsiteByID(sites)
 		err := website.ProvisionSources()
 		if err != nil {
 			Log.Error(err.Error())
@@ -59,7 +59,7 @@ func processWebsiteInSynchronousWorker(websitePtr *Website, wg *sync.WaitGroup) 
 
 func processAllWebsites() {
 	var wg sync.WaitGroup
-	for _, website := range registry.WebSites {
+	for _, website := range Registry.WebSites {
 		wg.Add(1)
 		go processWebsiteInSynchronousWorker(website, &wg)
 	}

@@ -16,7 +16,7 @@ func initialiseApplication() {
 		fmt.Printf("Halting execution because config file not loaded from '%s'\n", configFilePath)
 		os.Exit(1)
 	}
-	err = InitialiseLog(Debug)
+	err = InitialiseLogger(Debug)
 	if err != nil {
 		fmt.Printf("Unable to initialise logging, halting: %s", err.Error())
 		os.Exit(-1)
@@ -24,7 +24,7 @@ func initialiseApplication() {
 	if Debug {
 		Log.Infof("Debugging enabled")
 	}
-	registry = NewRegistry(config.SourceRoot, config.DocsRoot, os.Getenv(config.GitHubWebHookSecretEnvKey))
+	InitialiseRegistry(config.SourceRoot, config.DocsRoot, os.Getenv(config.GitHubWebHookSecretEnvKey))
 	for _, w := range config.WebsiteConfigs {
 		website := NewWebsite(
 			w.ID, w.ContentProcessor,
@@ -36,7 +36,7 @@ func initialiseApplication() {
 			w.GitRepoConfig.Branch,
 			w.IndexForSearch,
 		)
-		registry.Add(&website)
+		Registry.Add(&website)
 	}
 	Log.Infof("WebRoot folder path set to: %s", config.DocsRoot)
 	Log.Infof("Source Root folder path set to: %s", config.SourceRoot)

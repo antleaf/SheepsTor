@@ -8,7 +8,6 @@ import (
 
 var config = Configuration{}
 var Debug bool
-var registry WebsiteRegistry
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "", false, "--debug=true|false")

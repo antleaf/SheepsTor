@@ -5,14 +5,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var Log *zap.SugaredLogger
-
-func InitialiseLog(debug bool) error {
-	var err error
-	Log, err = ConfigureZapSugarLogger(debug)
-	return err
-}
-
 func ConfigureZapSugarLogger(debugging bool) (*zap.SugaredLogger, error) {
 	var zapLogger *zap.Logger
 	var err error

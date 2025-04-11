@@ -1,0 +1,11 @@
+html {
+  background-color: white;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 2%;
+}
+
+body {
+  background-color: white;
+  font-family: sans-serif;
+}
