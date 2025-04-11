@@ -5,10 +5,6 @@ import (
 	"net/http"
 )
 
-//func DefaultHandler(resp http.ResponseWriter, req *http.Request) {
-//	Renderer.HTML(resp, http.StatusOK, "home", "Brave New World")
-//}
-
 func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
 	Log.Debug("Handling GitHUb webhook post....")
 	if req.Method == http.MethodPost {
