@@ -27,7 +27,7 @@ func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
 			websitePtr := Registry.GetWebsiteByRepoNameAndBranchRef(e.GetRepo().GetFullName(), e.GetRef())
 			if websitePtr != nil {
 				website := *websitePtr
-				log.Debugf("Website identified from GitHub push event; '%s'", website.ID)
+				log.Debugf("SheepstorWebsite identified from GitHub push event; '%s'", website.ID)
 				gitRepo := website.GitRepo
 				localCommitID := gitRepo.GetHeadCommitID()
 				pushCommitID := *e.HeadCommit.ID
@@ -49,7 +49,7 @@ func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
 					}
 				}
 			} else {
-				log.Errorf("Website with repo name '%s' and branch ref '%s' not found", e.GetRepo().GetFullName(), e.GetRef())
+				log.Errorf("SheepstorWebsite with repo name '%s' and branch ref '%s' not found", e.GetRepo().GetFullName(), e.GetRef())
 			}
 		default:
 			return

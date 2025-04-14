@@ -40,7 +40,7 @@ func updateWebsites(sites string) {
 	}
 }
 
-func processWebsiteInSynchronousWorker(websitePtr *Website, wg *sync.WaitGroup) {
+func processWebsiteInSynchronousWorker(websitePtr *SheepstorWebsite, wg *sync.WaitGroup) {
 	website := *websitePtr
 	err := website.ProvisionSources()
 	if err != nil {

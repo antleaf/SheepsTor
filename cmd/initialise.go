@@ -28,7 +28,7 @@ func initialiseApplication() {
 	}
 	InitialiseRegistry(Config.SourceRoot, Config.DocsRoot, os.Getenv(Config.GitHubWebHookSecretEnvKey))
 	for _, w := range Config.WebsiteConfigs {
-		website := NewWebsite(
+		website := NewSheepstorWebsite(
 			w.ID, w.ContentProcessor,
 			w.ProcessorRootSubFolderPath,
 			Config.SourceRoot,

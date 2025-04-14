@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-type Website struct {
+type SheepstorWebsite struct {
 	ID               string
 	ContentProcessor string //either 'hugo' or nil
 	ProcessorRoot    string
@@ -15,8 +15,8 @@ type Website struct {
 	GitRepo          toolbox2go.GitRepo
 }
 
-func NewWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCloneID, repoName, repoBranchName string, indexForSearch bool) Website {
-	var w = Website{
+func NewSheepstorWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCloneID, repoName, repoBranchName string, indexForSearch bool) SheepstorWebsite {
+	var w = SheepstorWebsite{
 		ID:               id,
 		ContentProcessor: contentProcessor,
 		IndexForSearch:   indexForSearch,
@@ -31,7 +31,7 @@ func NewWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCl
 	return w
 }
 
-func (w *Website) Build() error {
+func (w *SheepstorWebsite) Build() error {
 	var err error
 	targetFolderPathForBuild := filepath.Join(w.WebRoot, "public_1")
 	symbolicLinkPath := filepath.Join(w.WebRoot, "public")
@@ -78,7 +78,7 @@ func (w *Website) Build() error {
 	return err
 }
 
-func (w *Website) ProvisionSources() error {
+func (w *SheepstorWebsite) ProvisionSources() error {
 	var err error
 	gitFolderPath := filepath.Join(w.GitRepo.RepoLocalPath, ".git")
 	if _, err = os.Stat(gitFolderPath); os.IsNotExist(err) {
@@ -99,7 +99,7 @@ func (w *Website) ProvisionSources() error {
 	return err
 }
 
-func (w *Website) CommitAndPush(message string) error {
+func (w *SheepstorWebsite) CommitAndPush(message string) error {
 	err := w.GitRepo.Pull()
 	if err != nil {
 		return err
