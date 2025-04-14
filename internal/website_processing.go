@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	toolbox2go "github.com/antleaf/toolbox2go"
 	"os"
 	"os/exec"
 )
@@ -22,7 +23,7 @@ func HugoProcessor(sourcesPath, targetFolderPathForBuild string) error {
 }
 
 func DefaultProcessor(sourcesPath, targetFolderPathForBuild string) {
-	CopyDir(sourcesPath, targetFolderPathForBuild)
+	toolbox2go.CopyDir(sourcesPath, targetFolderPathForBuild)
 }
 
 func IndexForSearch(targetFolderPathForBuild string) error {
