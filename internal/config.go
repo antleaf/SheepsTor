@@ -1,10 +1,5 @@
 package internal
 
-import (
-	"gopkg.in/yaml.v3"
-	"os"
-)
-
 type Configuration struct {
 	//LogLevel                  string          `yaml:"log_level"`
 	SourceRoot                string          `yaml:"source_root"`
@@ -26,17 +21,4 @@ type WebsiteConfig struct {
 	ProcessorRootSubFolderPath string        `yaml:"processor_root"`    //e.g. a sub-folder in the repo called 'webroot'
 	IndexForSearch             bool          `yaml:"index"`             //run the pagefind executable to create a search index
 	GitRepoConfig              GitRepoConfig `yaml:"git"`
-}
-
-func NewConfiguration(configFilePath string) (Configuration, error) {
-	config := Configuration{}
-	configData, err := os.ReadFile(configFilePath)
-	if err != nil {
-		return config, err
-	}
-	err = yaml.Unmarshal(configData, &config)
-	if err != nil {
-		return config, err
-	}
-	return config, err
 }
