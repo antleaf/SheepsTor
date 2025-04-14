@@ -1,6 +1,7 @@
 package internal
 
 import (
+	toolbox2go "github.com/antleaf/toolbox2go"
 	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/render"
 	"go.uber.org/zap"
@@ -13,14 +14,13 @@ var Registry WebsiteRegistry
 var Renderer *render.Render
 
 func InitialiseConfiguration(configFilePath string) error {
-	config, err := NewConfiguration(configFilePath)
-	Config = config
+	err := toolbox2go.NewConfigurationFromYamlFile(Config, configFilePath)
 	return err
 }
 
 func InitialiseLogger(debug bool) error {
 	var err error
-	Log, err = ConfigureZapSugarLogger(debug)
+	Log, err = toolbox2go.NewZapSugarLogger(debug)
 	return err
 }
 
