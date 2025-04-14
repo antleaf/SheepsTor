@@ -1,7 +1,6 @@
-package internal
+package pkg
 
-type Configuration struct {
-	//LogLevel                  string          `yaml:"log_level"`
+type SheepstorConfiguration struct {
 	SourceRoot                string          `yaml:"source_root"`
 	DocsRoot                  string          `yaml:"docs_root"`
 	Port                      int             `yaml:"port"`

@@ -1,10 +1,12 @@
-package internal
+package cmd
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func DefaultHandler(resp http.ResponseWriter, req *http.Request) {
 	err := Renderer.HTML(resp, http.StatusOK, "home", "This is SheepsTor")
 	if err != nil {
-		Log.Error(err.Error())
+		log.Error(err.Error())
 	}
 }

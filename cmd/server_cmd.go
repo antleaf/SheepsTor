@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	. "github.com/antleaf/SheepsTor/internal"
+	. "github.com/antleaf/sheepstor/pkg"
 	"github.com/spf13/cobra"
 	"net/http"
 )
@@ -20,10 +20,11 @@ var serverCmd = &cobra.Command{
 }
 
 func runServer() {
-	InitialiseServer()
-	Log.Infof("Running as HTTP Process on port %d", Config.Port)
+	Router = NewRouter()
+	Renderer = NewRenderer()
+	log.Infof("Running as HTTP Process on port %d", Config.Port)
 	err := http.ListenAndServe(fmt.Sprintf(":%v", Config.Port), Router)
 	if err != nil {
-		Log.Error(err.Error())
+		log.Error(err.Error())
 	}
 }

@@ -1,10 +1,15 @@
-package internal
+package cmd
 
 import (
+	. "github.com/antleaf/sheepstor/pkg"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/unrolled/render"
 	"net/http"
 )
+
+var Router chi.Router
+var Renderer *render.Render
 
 func NewRouter() chi.Router {
 	router := chi.NewRouter()

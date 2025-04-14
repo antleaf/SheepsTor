@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 	"os"
 )
 
 var Debug bool
+var log *zap.SugaredLogger
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Debug, "debug", "", false, "--debug=true|false")

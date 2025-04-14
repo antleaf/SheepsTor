@@ -1,17 +1,13 @@
-package internal
+package pkg
 
 import (
 	"github.com/antleaf/toolbox2go"
-	"github.com/go-chi/chi/v5"
-	"github.com/unrolled/render"
 	"go.uber.org/zap"
 )
 
-var Config = Configuration{}
-var Log *zap.SugaredLogger
-var Router chi.Router
+var Config = SheepstorConfiguration{}
+var log *zap.SugaredLogger
 var Registry WebsiteRegistry
-var Renderer *render.Render
 
 func InitialiseConfiguration(configFilePath string) error {
 	config, err := toolbox2go.NewConfigurationFromYamlFile(Config, configFilePath)
@@ -22,15 +18,8 @@ func InitialiseConfiguration(configFilePath string) error {
 	return err
 }
 
-func InitialiseLogger(debug bool) error {
-	var err error
-	Log, err = toolbox2go.NewZapSugarLogger(debug)
-	return err
-}
-
-func InitialiseServer() {
-	Router = NewRouter()
-	Renderer = NewRenderer()
+func SetLogger(logger *zap.SugaredLogger) {
+	log = logger
 }
 
 func InitialiseRegistry(sourceRoot string, docsRoot string, githubWebHookSecretEnvKey string) {

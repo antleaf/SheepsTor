@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	. "github.com/antleaf/SheepsTor/internal"
+	. "github.com/antleaf/sheepstor/pkg"
 	"github.com/spf13/cobra"
 	"sync"
 )
@@ -23,19 +23,19 @@ var updateWebsiteCmd = &cobra.Command{
 }
 
 func updateWebsites(sites string) {
-	Log.Info(fmt.Sprintf("Running as CLI Process, updating website(s): '%s'...", sites))
+	log.Info(fmt.Sprintf("Running as CLI Process, updating website(s): '%s'...", sites))
 	if sites == "all" {
 		processAllWebsites()
 	} else {
 		website := *Registry.GetWebsiteByID(sites)
 		err := website.ProvisionSources()
 		if err != nil {
-			Log.Error(err.Error())
+			log.Error(err.Error())
 			return
 		}
 		err = website.Build()
 		if err != nil {
-			Log.Error(err.Error())
+			log.Error(err.Error())
 		}
 	}
 }
@@ -44,14 +44,14 @@ func processWebsiteInSynchronousWorker(websitePtr *Website, wg *sync.WaitGroup) 
 	website := *websitePtr
 	err := website.ProvisionSources()
 	if err != nil {
-		Log.Error(err.Error())
+		log.Error(err.Error())
 	} else {
-		Log.Infof("Provisioned sources for website: '%s'", website.ID)
+		log.Infof("Provisioned sources for website: '%s'", website.ID)
 		err = website.Build()
 		if err != nil {
-			Log.Error(err.Error())
+			log.Error(err.Error())
 		} else {
-			Log.Infof("Built website: '%s'", website.ID)
+			log.Infof("Built website: '%s'", website.ID)
 		}
 	}
 	wg.Done()

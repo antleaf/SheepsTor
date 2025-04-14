@@ -1,4 +1,4 @@
-package internal
+package pkg
 
 import (
 	toolbox2go "github.com/antleaf/toolbox2go"
