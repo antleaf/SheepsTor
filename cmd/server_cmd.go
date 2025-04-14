@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	. "github.com/antleaf/sheepstor/pkg"
 	"github.com/spf13/cobra"
 	"net/http"
 )
 
+var port int
+
 func init() {
+	rootCmd.PersistentFlags().IntVarP(&port, "port", "", 8081, "--port=8081")
 	rootCmd.AddCommand(serverCmd)
 }
 
@@ -22,8 +24,8 @@ var serverCmd = &cobra.Command{
 func runServer() {
 	Router = NewRouter()
 	Renderer = NewRenderer()
-	log.Infof("Running as HTTP Process on port %d", Config.Port)
-	err := http.ListenAndServe(fmt.Sprintf(":%v", Config.Port), Router)
+	log.Infof("Running as HTTP Process on port %d", port)
+	err := http.ListenAndServe(fmt.Sprintf(":%v", port), Router)
 	if err != nil {
 		log.Error(err.Error())
 	}

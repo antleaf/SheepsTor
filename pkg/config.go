@@ -3,7 +3,6 @@ package pkg
 type SheepstorConfiguration struct {
 	SourceRoot                string          `yaml:"source_root"`
 	DocsRoot                  string          `yaml:"docs_root"`
-	Port                      int             `yaml:"port"`
 	GitHubWebHookSecretEnvKey string          `yaml:"github_webhook_secret_env_key"`
 	WebsiteConfigs            []WebsiteConfig `yaml:"websites"`
 }
