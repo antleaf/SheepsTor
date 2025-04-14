@@ -1,6 +1,7 @@
 package internal
 
 import (
+	toolbox2go "github.com/antleaf/toolbox2go"
 	"os"
 	"path/filepath"
 )
@@ -11,7 +12,7 @@ type Website struct {
 	ProcessorRoot    string
 	WebRoot          string
 	IndexForSearch   bool
-	GitRepo          GitRepo
+	GitRepo          toolbox2go.GitRepo
 }
 
 func NewWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCloneID, repoName, repoBranchName string, indexForSearch bool) Website {
@@ -21,7 +22,7 @@ func NewWebsite(id, contentProcessor, processorRoot, sourceRoot, webRoot, repoCl
 		IndexForSearch:   indexForSearch,
 	}
 	w.WebRoot = filepath.Join(webRoot, w.ID)
-	w.GitRepo = NewGitRepo(repoCloneID, repoName, repoBranchName, filepath.Join(sourceRoot, w.ID))
+	w.GitRepo = toolbox2go.NewGitRepo(repoCloneID, repoName, repoBranchName, filepath.Join(sourceRoot, w.ID))
 	if processorRoot != "" {
 		w.ProcessorRoot = filepath.Join(w.GitRepo.RepoLocalPath, processorRoot)
 	} else {

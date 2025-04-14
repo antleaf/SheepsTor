@@ -3,7 +3,7 @@ module github.com/antleaf/SheepsTor
 go 1.24
 
 require (
-	github.com/antleaf/toolbox2go v0.0.2
+	github.com/antleaf/toolbox2go v0.0.4
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-git/go-git/v5 v5.15.0
 	github.com/google/go-github/v40 v40.0.0

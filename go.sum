@@ -15,6 +15,10 @@ github.com/antleaf/toolbox2go v0.0.0-20250414104117-6def04235e5f h1:tQ/V4/ZKlBSp
 github.com/antleaf/toolbox2go v0.0.0-20250414104117-6def04235e5f/go.mod h1:ryXEzpZbgUXSAMxy5AFXll3gdVVjye2lPVC9AUjJwRg=
 github.com/antleaf/toolbox2go v0.0.2 h1:/Xiz3NQp1Dgi33MJkX0Ge9NIfZaOT/4za4rps1Gn+/8=
 github.com/antleaf/toolbox2go v0.0.2/go.mod h1:ryXEzpZbgUXSAMxy5AFXll3gdVVjye2lPVC9AUjJwRg=
+github.com/antleaf/toolbox2go v0.0.3 h1:gYGk4Cf+M2pqCXPNpCjp//STUZaVeaNGwPW66NVHP6M=
+github.com/antleaf/toolbox2go v0.0.3/go.mod h1:XIEXx58I9wHJLBdzsiF89zgUatrJdA+teIGPqSZrrVk=
+github.com/antleaf/toolbox2go v0.0.4 h1:XuMhvMdh6YGgdHVajep26oVhFZVXk227Nw8t+w3yuWQ=
+github.com/antleaf/toolbox2go v0.0.4/go.mod h1:XIEXx58I9wHJLBdzsiF89zgUatrJdA+teIGPqSZrrVk=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPdPJAN/hZIm0C4OItdklCFmMRWYpio=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
 github.com/cloudflare/circl v1.6.0 h1:cr5JKic4HI+LkINy2lg3W2jF8sHCVTBncJr5gIIq7qk=

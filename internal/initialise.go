@@ -1,7 +1,7 @@
 package internal
 
 import (
-	toolbox2go "github.com/antleaf/toolbox2go"
+	"github.com/antleaf/toolbox2go"
 	"github.com/go-chi/chi/v5"
 	"github.com/unrolled/render"
 	"go.uber.org/zap"
@@ -14,7 +14,11 @@ var Registry WebsiteRegistry
 var Renderer *render.Render
 
 func InitialiseConfiguration(configFilePath string) error {
-	err := toolbox2go.NewConfigurationFromYamlFile(Config, configFilePath)
+	config, err := toolbox2go.NewConfigurationFromYamlFile(Config, configFilePath)
+	if err != nil {
+		return err
+	}
+	Config = config
 	return err
 }
 
