@@ -8,10 +8,14 @@ import (
 	"os"
 )
 
+var registry *SheepstorWebsiteRegistry
+
 func initialiseApplication() {
+	var config = SheepstorConfiguration{}
 	_ = godotenv.Load()
 	configFilePath := os.Getenv("SHEEPSTOR_CONFIG_FILE_PATH")
-	err := InitialiseConfiguration(configFilePath)
+	config, err := toolbox2go.NewConfigurationFromYamlFile(config, configFilePath)
+	//err := InitialiseConfiguration(configFilePath)
 	if err != nil {
 		fmt.Print(err.Error() + "\n")
 		fmt.Printf("Halting execution because Config file not loaded from '%s'\n", configFilePath)
@@ -26,20 +30,22 @@ func initialiseApplication() {
 	if Debug {
 		log.Infof("Debugging enabled")
 	}
-	InitialiseRegistry(Config.SourceRoot, Config.DocsRoot, os.Getenv(Config.GitHubWebHookSecretEnvKey))
-	for _, w := range Config.WebsiteConfigs {
+	reg := NewSheepstorWebsiteRegistry(config.SourceRoot, config.DocsRoot, os.Getenv(config.GitHubWebHookSecretEnvKey))
+	registry = &reg
+	SetSheepstorRegistry(registry)
+	for _, w := range config.WebsiteConfigs {
 		website := NewSheepstorWebsite(
 			w.ID, w.ContentProcessor,
 			w.ProcessorRootSubFolderPath,
-			Config.SourceRoot,
-			Config.DocsRoot,
+			config.SourceRoot,
+			config.DocsRoot,
 			w.GitRepoConfig.CloneId,
 			w.GitRepoConfig.RepoName,
 			w.GitRepoConfig.Branch,
 			w.IndexForSearch,
 		)
-		Registry.Add(&website)
+		registry.Add(&website)
 	}
-	log.Infof("WebRoot folder path set to: %s", Config.DocsRoot)
-	log.Infof("Source Root folder path set to: %s", Config.SourceRoot)
+	log.Infof("WebRoot folder path set to: %s", config.DocsRoot)
+	log.Infof("Source Root folder path set to: %s", config.SourceRoot)
 }

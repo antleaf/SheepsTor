@@ -1,14 +1,14 @@
 package pkg
 
 import (
-	"github.com/google/go-github/v40/github"
+	"github.com/google/go-github/v71/github"
 	"net/http"
 )
 
 func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
 	log.Debug("Handling GitHUb webhook post....")
 	if req.Method == http.MethodPost {
-		payload, err := github.ValidatePayload(req, []byte(Registry.GitHubWebHookSecret))
+		payload, err := github.ValidatePayload(req, []byte(registry.GitHubWebHookSecret))
 		if err != nil {
 			log.Error(err.Error())
 			http.Error(resp, err.Error(), http.StatusBadRequest)
@@ -24,7 +24,7 @@ func GitHubWebHookHandler(resp http.ResponseWriter, req *http.Request) {
 		switch e := event.(type) {
 		case *github.PushEvent:
 			log.Debug("Github push event received")
-			websitePtr := Registry.GetWebsiteByRepoNameAndBranchRef(e.GetRepo().GetFullName(), e.GetRef())
+			websitePtr := registry.GetWebsiteByRepoNameAndBranchRef(e.GetRepo().GetFullName(), e.GetRef())
 			if websitePtr != nil {
 				website := *websitePtr
 				log.Debugf("SheepstorWebsite identified from GitHub push event; '%s'", website.ID)

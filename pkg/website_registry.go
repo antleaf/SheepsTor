@@ -1,14 +1,14 @@
 package pkg
 
-type WebsiteRegistry struct {
+type SheepstorWebsiteRegistry struct {
 	SourceRoot          string
 	WebRoot             string
 	GitHubWebHookSecret string
 	WebSites            []*SheepstorWebsite
 }
 
-func NewRegistry(sourceRoot, webRoot, gitHubWebHookSecret string) WebsiteRegistry {
-	registry := WebsiteRegistry{}
+func NewSheepstorWebsiteRegistry(sourceRoot, webRoot, gitHubWebHookSecret string) SheepstorWebsiteRegistry {
+	registry := SheepstorWebsiteRegistry{}
 	registry.SourceRoot = sourceRoot
 	registry.WebRoot = webRoot
 	registry.GitHubWebHookSecret = gitHubWebHookSecret
@@ -16,11 +16,11 @@ func NewRegistry(sourceRoot, webRoot, gitHubWebHookSecret string) WebsiteRegistr
 	return registry
 }
 
-func (r *WebsiteRegistry) Add(w *SheepstorWebsite) {
+func (r *SheepstorWebsiteRegistry) Add(w *SheepstorWebsite) {
 	r.WebSites = append(r.WebSites, w)
 }
 
-func (r *WebsiteRegistry) GetWebsiteByRepoNameAndBranchRef(repoName, branchRef string) *SheepstorWebsite {
+func (r *SheepstorWebsiteRegistry) GetWebsiteByRepoNameAndBranchRef(repoName, branchRef string) *SheepstorWebsite {
 	for _, w := range r.WebSites {
 		if w.GitRepo.RepoName == repoName && w.GitRepo.BranchRef == branchRef {
 			return w
@@ -29,7 +29,7 @@ func (r *WebsiteRegistry) GetWebsiteByRepoNameAndBranchRef(repoName, branchRef s
 	return nil
 }
 
-func (r *WebsiteRegistry) GetWebsiteByID(id string) *SheepstorWebsite {
+func (r *SheepstorWebsiteRegistry) GetWebsiteByID(id string) *SheepstorWebsite {
 	for _, w := range r.WebSites {
 		if w.ID == id {
 			return w
