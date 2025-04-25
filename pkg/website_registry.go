@@ -8,12 +8,12 @@ type SheepstorWebsiteRegistry struct {
 }
 
 func NewSheepstorWebsiteRegistry(sourceRoot, webRoot, gitHubWebHookSecret string) SheepstorWebsiteRegistry {
-	registry := SheepstorWebsiteRegistry{}
-	registry.SourceRoot = sourceRoot
-	registry.WebRoot = webRoot
-	registry.GitHubWebHookSecret = gitHubWebHookSecret
-	registry.WebSites = make([]*SheepstorWebsite, 0)
-	return registry
+	r := SheepstorWebsiteRegistry{}
+	r.SourceRoot = sourceRoot
+	r.WebRoot = webRoot
+	r.GitHubWebHookSecret = gitHubWebHookSecret
+	r.WebSites = make([]*SheepstorWebsite, 0)
+	return r
 }
 
 func (r *SheepstorWebsiteRegistry) Add(w *SheepstorWebsite) {
